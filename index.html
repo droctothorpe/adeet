@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Context Injection</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg-main: #070d14;
+    --bg-grid: rgba(147, 186, 255, 0.08);
+    --bg-glow-a: rgba(79, 142, 255, 0.18);
+    --bg-glow-b: rgba(26, 210, 157, 0.14);
+    --text-body: #9cb3ca;
+    --page-title: #eaf2ff;
+    --accent: #66b2ff;
+    --accent-soft: rgba(102, 178, 255, 0.28);
+    --title-color: #9ab1ca;
+    --item-color: #7f93aa;
+    --prefix-color: rgba(102, 178, 255, 0.4);
+    --hover-color: #8bc8ff;
+    --stroke-outer: rgba(116, 172, 255, 0.35);
+    --stroke-shared: rgba(116, 172, 255, 0.2);
+    --stroke-uncond: rgba(255, 130, 130, 0.3);
+    --stroke-cond: rgba(64, 201, 170, 0.34);
+    --stroke-venn: rgba(64, 201, 170, 0.23);
+    --stroke-isolated: rgba(240, 184, 87, 0.34);
+    --fill-outer: rgba(98, 168, 255, 0.035);
+    --fill-shared: rgba(98, 168, 255, 0.02);
+    --fill-uncond: rgba(255, 130, 130, 0.06);
+    --fill-cond: rgba(64, 201, 170, 0.05);
+    --fill-isolated: rgba(240, 184, 87, 0.06);
+    --sub-fill: rgba(64, 201, 170, 0.03);
+    --item-hover-fill: rgba(102, 178, 255, 0.08);
+    --item-hover-stroke: rgba(102, 178, 255, 0.26);
+    --tag-color: rgba(102, 178, 255, 0.5);
+    --overlay-bg: rgba(4, 12, 22, 0.62);
+    --overlay-card-bg: rgba(12, 21, 34, 0.9);
+    --overlay-card-border: rgba(102, 178, 255, 0.22);
+    --overlay-heading: #94ccff;
+    --overlay-copy: #9cb3ca;
+    --overlay-close: #57708b;
+    --overlay-close-hover: #d9ebff;
+    --hint-bg: rgba(12, 22, 38, 0.72);
+    --hint-border: rgba(102, 178, 255, 0.25);
+    --hint-text: #a8c5e4;
+  }
+
+  body.light-mode {
+    --bg-main: #f1f5f9;
+    --bg-grid: rgba(49, 94, 157, 0.09);
+    --bg-glow-a: rgba(102, 167, 255, 0.24);
+    --bg-glow-b: rgba(86, 192, 159, 0.22);
+    --text-body: #35516f;
+    --page-title: #0f2744;
+    --accent: #2076ca;
+    --accent-soft: rgba(32, 118, 202, 0.26);
+    --title-color: #436486;
+    --item-color: #3f6083;
+    --prefix-color: rgba(32, 118, 202, 0.45);
+    --hover-color: #0d5ead;
+    --stroke-outer: rgba(32, 118, 202, 0.38);
+    --stroke-shared: rgba(32, 118, 202, 0.25);
+    --stroke-uncond: rgba(212, 92, 92, 0.32);
+    --stroke-cond: rgba(31, 147, 120, 0.36);
+    --stroke-venn: rgba(31, 147, 120, 0.25);
+    --stroke-isolated: rgba(182, 129, 42, 0.35);
+    --fill-outer: rgba(32, 118, 202, 0.05);
+    --fill-shared: rgba(32, 118, 202, 0.03);
+    --fill-uncond: rgba(212, 92, 92, 0.08);
+    --fill-cond: rgba(31, 147, 120, 0.08);
+    --fill-isolated: rgba(182, 129, 42, 0.08);
+    --sub-fill: rgba(31, 147, 120, 0.045);
+    --item-hover-fill: rgba(32, 118, 202, 0.1);
+    --item-hover-stroke: rgba(32, 118, 202, 0.32);
+    --tag-color: rgba(32, 118, 202, 0.55);
+    --overlay-bg: rgba(14, 31, 53, 0.28);
+    --overlay-card-bg: rgba(245, 250, 255, 0.95);
+    --overlay-card-border: rgba(32, 118, 202, 0.24);
+    --overlay-heading: #0c4f94;
+    --overlay-copy: #35516f;
+    --overlay-close: #547396;
+    --overlay-close-hover: #103964;
+    --hint-bg: rgba(246, 251, 255, 0.78);
+    --hint-border: rgba(32, 118, 202, 0.28);
+    --hint-text: #2f547a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-main);
+    color: var(--text-body);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(56vw 56vw at 12% 16%, var(--bg-glow-a), transparent 65%),
+      radial-gradient(60vw 44vw at 84% 84%, var(--bg-glow-b), transparent 68%);
+    pointer-events: none;
+    z-index: 0;
+    transition: background 0.3s ease;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--bg-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mix-blend-mode: normal;
+    opacity: 0.8;
+    pointer-events: none;
+    z-index: 0;
+    transition: background-image 0.3s ease;
+  }
+
+  #diagram { position: relative; z-index: 1; width: 100%; height: 100vh; }
+
+  .mode-hint {
+    position: fixed;
+    top: 18px;
+    right: 20px;
+    z-index: 5;
+    border: 1px solid var(--hint-border);
+    background: var(--hint-bg);
+    color: var(--hint-text);
+    border-radius: 999px;
+    padding: 7px 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    box-shadow: 0 8px 24px rgba(8, 20, 34, 0.18);
+    user-select: none;
+    backdrop-filter: blur(5px);
+    animation: hintFade 0.6s ease 0.3s both;
+  }
+
+  .overlay-bg {
+    display: none; position: fixed; inset: 0;
+    background: var(--overlay-bg); backdrop-filter: blur(5px);
+    z-index: 100; align-items: center; justify-content: center;
+  }
+  .overlay-bg.active { display: flex; }
+  .overlay-card {
+    background: var(--overlay-card-bg);
+    border: 1px solid var(--overlay-card-border);
+    border-radius: 14px;
+    box-shadow: 0 14px 44px rgba(8, 16, 28, 0.32);
+    padding: 28px 32px; max-width: 480px; width: 90%; position: relative;
+  }
+  .overlay-card h2 {
+    font-family: 'Manrope', sans-serif;
+    font-size: 21px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--overlay-heading);
+    letter-spacing: 0.01em;
+  }
+  .overlay-card p {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--overlay-copy);
+    line-height: 1.65;
+  }
+  .overlay-close {
+    position: absolute; top: 12px; right: 16px; background: none; border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: var(--overlay-close);
+    font-family: 'IBM Plex Sans', sans-serif;
+    transition: color 0.15s;
+  }
+  .overlay-close:hover { color: var(--overlay-close-hover); }
+
+  @keyframes hintFade {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 900px) {
+    .mode-hint { top: 12px; right: 12px; font-size: 10px; padding: 6px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="mode-hint" id="mode-hint">Dark mode - press L for light mode</div>
+
+<svg id="diagram"></svg>
+
+<div class="overlay-bg" id="overlay">
+  <div class="overlay-card">
+    <button class="overlay-close" id="overlay-close">&times;</button>
+    <h2 id="overlay-title"></h2>
+    <p id="overlay-body"></p>
+  </div>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+// ── Info map ──
+const info = {
+  'context-injection':       { title: 'Context Injection',              body: 'Info coming soon.' },
+  'shared-injection':        { title: 'Shared Injection',               body: 'Info coming soon.' },
+  'unconditional-injection': { title: 'Unconditional Injection',        body: 'Info coming soon.' },
+  'agents-md':               { title: 'AGENTS.md',                      body: 'Info coming soon.' },
+  'claude-md':               { title: 'CLAUDE.md',                      body: 'Info coming soon.' },
+  'copilot-instructions':    { title: 'copilot-instructions.md',        body: 'Info coming soon.' },
+  'uncond-etc':              { title: 'Other Unconditional Files',      body: 'Info coming soon.' },
+  'conditional-injection':   { title: 'Conditional Injection (Skills)', body: 'Info coming soon.' },
+  'explicit-injection':      { title: 'Explicit Injection',             body: 'Info coming soon.' },
+  'claude-commands':         { title: 'Claude Commands',                body: 'Info coming soon.' },
+  'windsurf-workflows':      { title: 'Windsurf Workflows',             body: 'Info coming soon.' },
+  'explicit-etc':            { title: 'Other Explicit Injections',      body: 'Info coming soon.' },
+  'claude-skills':           { title: 'Claude Skills',                  body: 'Info coming soon.' },
+  'windsurf-skills':         { title: 'Windsurf Skills',                body: 'Info coming soon.' },
+  'overlap-etc':             { title: 'Other Skills',                   body: 'Info coming soon.' },
+  'implicit-injection':      { title: 'Implicit Injection',             body: 'Info coming soon.' },
+  'isolated-context':        { title: 'Isolated Context',               body: 'Info coming soon.' },
+  'subagents':               { title: 'Subagents',                      body: 'Info coming soon.' },
+};
+
+// ── Overlay ──
+const overlayEl = document.getElementById('overlay');
+const oTitle = document.getElementById('overlay-title');
+const oBody = document.getElementById('overlay-body');
+const bodyEl = document.body;
+const modeHint = document.getElementById('mode-hint');
+const MODE_KEY = 'llmdte-theme';
+
+function setLightMode(enabled) {
+  bodyEl.classList.toggle('light-mode', enabled);
+  modeHint.textContent = enabled
+    ? 'Light mode - press L for dark mode'
+    : 'Dark mode - press L for light mode';
+  localStorage.setItem(MODE_KEY, enabled ? 'light' : 'dark');
+}
+
+setLightMode(localStorage.getItem(MODE_KEY) === 'light');
+
+document.getElementById('overlay-close').addEventListener('click', () => overlayEl.classList.remove('active'));
+overlayEl.addEventListener('click', e => { if (e.target === overlayEl) overlayEl.classList.remove('active'); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') overlayEl.classList.remove('active');
+  if (!e.metaKey && !e.ctrlKey && !e.altKey && (e.key === 'l' || e.key === 'L')) {
+    setLightMode(!bodyEl.classList.contains('light-mode'));
+  }
+});
+
+function showOverlay(key) {
+  if (!info[key]) return;
+  oTitle.textContent = info[key].title;
+  oBody.textContent = info[key].body;
+  overlayEl.classList.add('active');
+}
+
+// ── Constants ──
+const W = 1100, H = 650, R = 12;
+const PAD = 14;        // padding inside boxes
+const TITLE_SIZE = 12; // uniform title font size
+const TITLE_COLOR = 'var(--title-color)';
+const ITEM_SIZE = 12;
+const ITEM_COLOR = 'var(--item-color)';
+const PREFIX_COLOR = 'var(--prefix-color)';
+const HOVER_COLOR = 'var(--hover-color)';
+
+const STROKE = {
+  outer:   'var(--stroke-outer)',
+  shared:  'var(--stroke-shared)',
+  uncond:  'var(--stroke-uncond)',
+  cond:    'var(--stroke-cond)',
+  venn:    'var(--stroke-venn)',
+  isolated:'var(--stroke-isolated)',
+};
+const FILL = {
+  outer:   'var(--fill-outer)',
+  shared:  'var(--fill-shared)',
+  uncond:  'var(--fill-uncond)',
+  cond:    'var(--fill-cond)',
+  isolated:'var(--fill-isolated)',
+};
+
+// ── Boxes: { key, x, y, w, h, stroke, fill } ──
+const T = 50; // vertical offset for page title
+
+const boxes = [
+  { key: 'context-injection',      x: 10,  y: 10+T,  w: 1080, h: 580, stroke: STROKE.outer,    fill: FILL.outer },
+  { key: 'shared-injection',       x: 24,  y: 44+T,  w: 820,  h: 536, stroke: STROKE.shared,   fill: FILL.shared },
+  { key: 'unconditional-injection',x: 38,  y: 82+T,  w: 250,  h: 488, stroke: STROKE.uncond,   fill: FILL.uncond },
+  { key: 'conditional-injection',  x: 302, y: 82+T,  w: 530,  h: 488, stroke: STROKE.cond,     fill: FILL.cond },
+  { key: 'isolated-context',       x: 858, y: 44+T,  w: 222,  h: 536, stroke: STROKE.isolated, fill: FILL.isolated },
+];
+
+// Explicit / implicit injection sub-boxes (overlapping inside conditional)
+const subBoxes = [
+  { key: 'explicit-injection',  x: 316, y: 130+T, w: 310, h: 430, stroke: STROKE.venn, fill: 'var(--sub-fill)' },
+  { key: 'implicit-injection',  x: 510, y: 130+T, w: 310, h: 430, stroke: STROKE.venn, fill: 'var(--sub-fill)' },
+];
+
+// ── Items ──
+const items = [
+  // unconditional children
+  { key: 'agents-md',            label: 'AGENTS.md',               x: 163, y: 240+T },
+  { key: 'claude-md',            label: 'CLAUDE.md',               x: 163, y: 275+T },
+  { key: 'copilot-instructions', label: 'copilot-instructions.md', x: 163, y: 310+T },
+  { key: 'uncond-etc',           label: 'etc.',                    x: 163, y: 345+T },
+  // explicit (left sub-box, non-overlap zone)
+  { key: 'claude-commands',      label: 'Claude Commands',         x: 400, y: 310+T },
+  { key: 'windsurf-workflows',   label: 'Windsurf Workflows',      x: 400, y: 345+T },
+  { key: 'explicit-etc',         label: 'etc.',                    x: 400, y: 380+T },
+  // overlap zone (between the two sub-boxes)
+  { key: 'claude-skills',        label: 'Claude Skills',           x: 570, y: 310+T },
+  { key: 'windsurf-skills',      label: 'Windsurf Skills',         x: 570, y: 345+T },
+  { key: 'overlap-etc',          label: 'etc.',                    x: 570, y: 380+T },
+  // isolated children
+  { key: 'subagents',            label: 'Subagents',               x: 969, y: 300+T },
+];
+
+function titleCase(s) {
+  return s.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+// ── Build SVG ──
+const svg = d3.select('#diagram')
+  .attr('viewBox', `0 0 ${W} ${H}`)
+  .attr('preserveAspectRatio', 'xMidYMid meet');
+
+// Page title
+svg.append('text')
+  .attr('x', W / 2)
+  .attr('y', 34)
+  .attr('text-anchor', 'middle')
+  .attr('font-family', 'Manrope, sans-serif')
+  .attr('font-size', 24)
+  .attr('font-weight', 700)
+  .attr('letter-spacing', '0.03em')
+  .attr('fill', 'var(--page-title)')
+  .text('LLM Dev Tool Taxonomy');
+
+// Draw boxes (back to front order)
+const boxG = svg.selectAll('.box')
+  .data(boxes)
+  .enter().append('g')
+  .attr('class', 'box');
+
+boxG.append('rect')
+  .attr('x', d => d.x)
+  .attr('y', d => d.y)
+  .attr('width', d => d.w)
+  .attr('height', d => d.h)
+  .attr('rx', R)
+  .attr('ry', R)
+  .attr('fill', d => d.fill)
+  .attr('stroke', d => d.stroke)
+  .attr('stroke-width', 1.5);
+
+// Box titles — uniform size and color, top-center
+boxG.each(function(d) {
+  const g = d3.select(this);
+  const titleX = d.x + d.w / 2;
+  const titleY = d.y + PAD + TITLE_SIZE;
+
+  g.append('text')
+    .attr('x', titleX)
+    .attr('y', titleY)
+    .attr('text-anchor', 'middle')
+    .attr('font-family', 'Manrope, sans-serif')
+    .attr('font-size', TITLE_SIZE)
+    .attr('font-weight', 500)
+    .attr('letter-spacing', '0.03em')
+    .attr('fill', TITLE_COLOR)
+    .attr('cursor', 'pointer')
+    .on('click', () => showOverlay(d.key))
+    .on('mouseenter', function() { d3.select(this).attr('fill', HOVER_COLOR); })
+    .on('mouseleave', function() { d3.select(this).attr('fill', TITLE_COLOR); });
+
+  const titleEl = g.select('text');
+  if (d.key === 'conditional-injection') {
+    titleEl.text(null);
+    titleEl.append('tspan').text(titleCase(d.key));
+    titleEl.append('tspan')
+      .attr('font-size', 10)
+      .attr('font-weight', 400)
+      .attr('fill', 'var(--tag-color)')
+      .text('  aka Skills');
+  } else {
+    titleEl.text(titleCase(d.key));
+  }
+});
+
+// Explicit / implicit sub-boxes (overlapping)
+const subG = svg.selectAll('.sub-box')
+  .data(subBoxes)
+  .enter().append('g')
+  .attr('class', 'sub-box');
+
+subG.append('rect')
+  .attr('x', d => d.x)
+  .attr('y', d => d.y)
+  .attr('width', d => d.w)
+  .attr('height', d => d.h)
+  .attr('rx', R)
+  .attr('ry', R)
+  .attr('fill', d => d.fill)
+  .attr('stroke', d => d.stroke)
+  .attr('stroke-width', 1);
+
+// Sub-box titles — explicit left-aligned, implicit right-aligned
+subG.each(function(d) {
+  const g = d3.select(this);
+  const isExplicit = d.key === 'explicit-injection';
+  const titleX = isExplicit ? d.x + PAD : d.x + d.w - PAD;
+  const anchor = isExplicit ? 'start' : 'end';
+  const titleY = d.y + PAD + TITLE_SIZE;
+
+  g.append('text')
+    .attr('x', titleX)
+    .attr('y', titleY)
+    .attr('text-anchor', anchor)
+    .attr('font-family', 'Manrope, sans-serif')
+    .attr('font-size', TITLE_SIZE)
+    .attr('font-weight', 500)
+    .attr('letter-spacing', '0.03em')
+    .attr('fill', TITLE_COLOR)
+    .attr('cursor', 'pointer')
+    .text(titleCase(d.key))
+    .on('click', () => showOverlay(d.key))
+    .on('mouseenter', function() { d3.select(this).attr('fill', HOVER_COLOR); })
+    .on('mouseleave', function() { d3.select(this).attr('fill', TITLE_COLOR); });
+});
+
+// ── Items ──
+const itemG = svg.selectAll('.item')
+  .data(items)
+  .enter().append('g')
+  .attr('class', 'item')
+  .attr('cursor', 'pointer')
+  .on('click', (e, d) => showOverlay(d.key));
+
+// hit area
+itemG.append('rect')
+  .attr('x', d => d.x - 95)
+  .attr('y', d => d.y - 12)
+  .attr('width', 190)
+  .attr('height', 24)
+  .attr('rx', 4)
+  .attr('fill', 'transparent')
+  .attr('stroke', 'transparent')
+  .attr('stroke-width', 1);
+
+// prefix for non-headings
+itemG.filter(d => !d.heading).append('text')
+  .attr('x', d => d.x - 4)
+  .attr('y', d => d.y)
+  .attr('text-anchor', 'end')
+  .attr('dominant-baseline', 'middle')
+  .attr('font-family', 'IBM Plex Mono, monospace')
+  .attr('font-size', ITEM_SIZE)
+  .attr('fill', PREFIX_COLOR)
+  .text('//');
+
+// label
+itemG.append('text')
+  .attr('class', 'item-label')
+  .attr('x', d => d.heading ? d.x : d.x + 2)
+  .attr('y', d => d.y)
+  .attr('text-anchor', 'middle')
+  .attr('dominant-baseline', 'middle')
+  .attr('font-family', 'IBM Plex Mono, monospace')
+  .attr('font-size', ITEM_SIZE)
+  .attr('font-weight', d => d.heading ? 500 : 400)
+  .attr('fill', ITEM_COLOR)
+  .text(d => d.label);
+
+// hover
+itemG
+  .on('mouseenter', function() {
+    d3.select(this).select('rect')
+      .transition().duration(120)
+      .attr('fill', 'var(--item-hover-fill)')
+      .attr('stroke', 'var(--item-hover-stroke)');
+    d3.select(this).select('.item-label')
+      .transition().duration(120)
+      .attr('fill', HOVER_COLOR);
+  })
+  .on('mouseleave', function(e, d) {
+    d3.select(this).select('rect')
+      .transition().duration(120)
+      .attr('fill', 'transparent')
+      .attr('stroke', 'transparent');
+    d3.select(this).select('.item-label')
+      .transition().duration(120)
+      .attr('fill', ITEM_COLOR);
+  });
+</script>
+</body>
+</html>
