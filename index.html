@@ -147,6 +147,23 @@
     user-select: none;
     backdrop-filter: blur(5px);
     animation: hintFade 0.6s ease 0.3s both;
+    appearance: none;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  }
+
+  .mode-hint:hover {
+    border-color: var(--accent-soft);
+    transform: translateY(-1px);
+  }
+
+  .mode-hint:active {
+    transform: translateY(0);
+  }
+
+  .mode-hint:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 
   .overlay-bg {
@@ -198,7 +215,7 @@
 </head>
 <body>
 
-<div class="mode-hint" id="mode-hint">Dark mode - press L for light mode</div>
+<button class="mode-hint" id="mode-hint" type="button" aria-label="Toggle color mode">Switch to Light Mode</button>
 
 <svg id="diagram"></svg>
 
@@ -215,7 +232,7 @@
 // ── Info map ──
 const info = {
   'context-injection':       { title: 'Context Injection',              body: 'Info coming soon.' },
-  'shared-injection':        { title: 'Shared Injection',               body: 'Info coming soon.' },
+  'shared-context':          { title: 'Shared Context',                 body: 'Info coming soon.' },
   'unconditional-injection': { title: 'Unconditional Injection',        body: 'Info coming soon.' },
   'agents-md':               { title: 'AGENTS.md',                      body: 'Info coming soon.' },
   'claude-md':               { title: 'CLAUDE.md',                      body: 'Info coming soon.' },
@@ -245,12 +262,16 @@ const MODE_KEY = 'llmdte-theme';
 function setLightMode(enabled) {
   bodyEl.classList.toggle('light-mode', enabled);
   modeHint.textContent = enabled
-    ? 'Light mode - press L for dark mode'
-    : 'Dark mode - press L for light mode';
+    ? 'Switch to Dark Mode'
+    : 'Switch to Light Mode';
+  modeHint.setAttribute('aria-pressed', String(enabled));
   localStorage.setItem(MODE_KEY, enabled ? 'light' : 'dark');
 }
 
 setLightMode(localStorage.getItem(MODE_KEY) === 'light');
+modeHint.addEventListener('click', () => {
+  setLightMode(!bodyEl.classList.contains('light-mode'));
+});
 
 document.getElementById('overlay-close').addEventListener('click', () => overlayEl.classList.remove('active'));
 overlayEl.addEventListener('click', e => { if (e.target === overlayEl) overlayEl.classList.remove('active'); });
@@ -295,20 +316,20 @@ const FILL = {
 };
 
 // ── Boxes: { key, x, y, w, h, stroke, fill } ──
-const T = 50; // vertical offset for page title
+const T = 72; // vertical offset for page title and subtitle padding
 
 const boxes = [
-  { key: 'context-injection',      x: 10,  y: 10+T,  w: 1080, h: 580, stroke: STROKE.outer,    fill: FILL.outer },
-  { key: 'shared-injection',       x: 24,  y: 44+T,  w: 820,  h: 536, stroke: STROKE.shared,   fill: FILL.shared },
-  { key: 'unconditional-injection',x: 38,  y: 82+T,  w: 250,  h: 488, stroke: STROKE.uncond,   fill: FILL.uncond },
-  { key: 'conditional-injection',  x: 302, y: 82+T,  w: 530,  h: 488, stroke: STROKE.cond,     fill: FILL.cond },
-  { key: 'isolated-context',       x: 858, y: 44+T,  w: 222,  h: 536, stroke: STROKE.isolated, fill: FILL.isolated },
+  { key: 'context-injection',      x: 10,  y: 10+T,  w: 1080, h: 564, stroke: STROKE.outer,    fill: FILL.outer },
+  { key: 'shared-context',         x: 24,  y: 44+T,  w: 820,  h: 520, stroke: STROKE.shared,   fill: FILL.shared },
+  { key: 'unconditional-injection',x: 38,  y: 82+T,  w: 250,  h: 472, stroke: STROKE.uncond,   fill: FILL.uncond },
+  { key: 'conditional-injection',  x: 302, y: 82+T,  w: 530,  h: 472, stroke: STROKE.cond,     fill: FILL.cond },
+  { key: 'isolated-context',       x: 858, y: 44+T,  w: 218,  h: 170, stroke: STROKE.isolated, fill: FILL.isolated },
 ];
 
 // Explicit / implicit injection sub-boxes (overlapping inside conditional)
 const subBoxes = [
-  { key: 'explicit-injection',  x: 316, y: 130+T, w: 310, h: 430, stroke: STROKE.venn, fill: 'var(--sub-fill)' },
-  { key: 'implicit-injection',  x: 510, y: 130+T, w: 310, h: 430, stroke: STROKE.venn, fill: 'var(--sub-fill)' },
+  { key: 'explicit-injection',  x: 316, y: 130+T, w: 310, h: 420, stroke: STROKE.venn, fill: 'var(--sub-fill)' },
+  { key: 'implicit-injection',  x: 510, y: 130+T, w: 310, h: 420, stroke: STROKE.venn, fill: 'var(--sub-fill)' },
 ];
 
 // ── Items ──
@@ -327,7 +348,7 @@ const items = [
   { key: 'windsurf-skills',      label: 'Windsurf Skills',         x: 570, y: 345+T },
   { key: 'overlap-etc',          label: 'etc.',                    x: 570, y: 380+T },
   // isolated children
-  { key: 'subagents',            label: 'Subagents',               x: 969, y: 300+T },
+  { key: 'subagents',            label: 'Subagents',               x: 967, y: 129+T },
 ];
 
 function titleCase(s) {
@@ -341,15 +362,35 @@ const svg = d3.select('#diagram')
 
 // Page title
 svg.append('text')
-  .attr('x', W / 2)
+  .attr('x', 10)
   .attr('y', 34)
-  .attr('text-anchor', 'middle')
+  .attr('text-anchor', 'start')
   .attr('font-family', 'Manrope, sans-serif')
   .attr('font-size', 24)
   .attr('font-weight', 700)
   .attr('letter-spacing', '0.03em')
   .attr('fill', 'var(--page-title)')
-  .text('LLM Dev Tool Taxonomy');
+  .text('Large Language Model Developer Tool Extension Taxonomy');
+
+// Subtitle / context blurb
+const subtitle = svg.append('text')
+  .attr('x', 10)
+  .attr('y', 56)
+  .attr('text-anchor', 'start')
+  .attr('font-family', 'IBM Plex Sans, sans-serif')
+  .attr('font-size', 12)
+  .attr('font-weight', 400)
+  .attr('fill', 'var(--text-body)')
+  .attr('opacity', 0.95);
+
+subtitle.append('tspan')
+  .attr('x', 10)
+  .text('The market has been flooded with LLM Developer Tool Extensions from LLM vendors. These extensions have profoundly inconsistent nomenclature and standards');
+
+subtitle.append('tspan')
+  .attr('x', 10)
+  .attr('dy', 14)
+  .text('that make the domain space seem unecessarily complex. This page is an attempt to simplify and disambiguate this domain.');
 
 // Draw boxes (back to front order)
 const boxG = svg.selectAll('.box')
@@ -392,11 +433,7 @@ boxG.each(function(d) {
   if (d.key === 'conditional-injection') {
     titleEl.text(null);
     titleEl.append('tspan').text(titleCase(d.key));
-    titleEl.append('tspan')
-      .attr('font-size', 10)
-      .attr('font-weight', 400)
-      .attr('fill', 'var(--tag-color)')
-      .text('  aka Skills');
+    titleEl.append('tspan').text(' (Skills)');
   } else {
     titleEl.text(titleCase(d.key));
   }
@@ -453,25 +490,14 @@ const itemG = svg.selectAll('.item')
 
 // hit area
 itemG.append('rect')
-  .attr('x', d => d.x - 95)
+  .attr('x', d => d.x - Math.min(176, Math.max(92, d.label.length * 7.2 + 26)) / 2)
   .attr('y', d => d.y - 12)
-  .attr('width', 190)
+  .attr('width', d => Math.min(176, Math.max(92, d.label.length * 7.2 + 26)))
   .attr('height', 24)
   .attr('rx', 4)
   .attr('fill', 'transparent')
   .attr('stroke', 'transparent')
   .attr('stroke-width', 1);
-
-// prefix for non-headings
-itemG.filter(d => !d.heading).append('text')
-  .attr('x', d => d.x - 4)
-  .attr('y', d => d.y)
-  .attr('text-anchor', 'end')
-  .attr('dominant-baseline', 'middle')
-  .attr('font-family', 'IBM Plex Mono, monospace')
-  .attr('font-size', ITEM_SIZE)
-  .attr('fill', PREFIX_COLOR)
-  .text('//');
 
 // label
 itemG.append('text')
@@ -489,22 +515,10 @@ itemG.append('text')
 // hover
 itemG
   .on('mouseenter', function() {
-    d3.select(this).select('rect')
-      .transition().duration(120)
-      .attr('fill', 'var(--item-hover-fill)')
-      .attr('stroke', 'var(--item-hover-stroke)');
-    d3.select(this).select('.item-label')
-      .transition().duration(120)
-      .attr('fill', HOVER_COLOR);
+    d3.select(this).select('.item-label').attr('fill', HOVER_COLOR);
   })
   .on('mouseleave', function(e, d) {
-    d3.select(this).select('rect')
-      .transition().duration(120)
-      .attr('fill', 'transparent')
-      .attr('stroke', 'transparent');
-    d3.select(this).select('.item-label')
-      .transition().duration(120)
-      .attr('fill', ITEM_COLOR);
+    d3.select(this).select('.item-label').attr('fill', ITEM_COLOR);
   });
 </script>
 </body>
