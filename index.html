@@ -699,7 +699,7 @@ const subBoxes = [
 
 const layoutByKey = Object.fromEntries([...boxes, ...subBoxes].map(d => [d.key, d]));
 
-function centeredYPositions(boxKey, count, gap = 35) {
+function centeredYPositions(boxKey, count, gap = 28) {
   const b = layoutByKey[boxKey];
   if (!b || count < 1) return [];
   const centerY = b.y + b.h / 2;
