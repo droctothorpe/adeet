@@ -1,3 +1,5 @@
+---
+---
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -446,13 +448,13 @@
     <span class="mode-label mode-label-light" aria-hidden="true"></span>
   </button>
   <div class="page-head">
-    <h1>Agentic Development Environment Extension Taxonomy</h1>
-    <p>There has been a proliferation of agentic development environment extensions from competing vendors. As a result, the market has profoundly inconsistent nomenclature and standards that make the domain space seem unecessarily complex. This page is an attempt to simplify and disambiguate the available offerings.</p>
+    <h1>{{ site.data.taxonomy.page.heading }}</h1>
+    <p>{{ site.data.taxonomy.page.subtitle }}</p>
   </div>
   <svg id="diagram"></svg>
 </div>
 
-<footer class="page-footer">To contribute, navigate to <a href="https://github.com/droctothorpe/adeet" target="_blank" rel="noopener noreferrer">https://github.com/droctothorpe/adeet</a>.</footer>
+<footer class="page-footer">To contribute, navigate to <a href="{{ site.data.taxonomy.page.repo_url }}" target="_blank" rel="noopener noreferrer">{{ site.data.taxonomy.page.repo_url }}</a>.</footer>
 
 <div class="overlay-bg" id="overlay">
   <div class="overlay-card">
@@ -463,118 +465,12 @@
 </div>
 
 <script src="https://d3js.org/d3.v7.min.js"></script>
+<script id="taxonomy-data" type="application/json">{{ site.data.taxonomy | jsonify }}</script>
 <script>
-// ── Info map ──
-const info = {
-  'llm-dev-tool-extensions': {
-    title: 'Agentic Development Environment Extensions',
-    body: 'Extensions / plugins for agentic development environments such as Claude Code, Codex, Cursor, Windsurf, etc.',
-  },
-  'context-injection': {
-    title: 'Context Injection',
-    body: 'All of these extensions leverage context injection to improve outputs.',
-  },
-  'tool-definitions': {
-    title: 'Tool Definitions',
-    body: 'Tools are just functions that agents can call. LLMs can only generate text. To interact with their environment, they must use tools. At the risk of oversimplifying things, you can think of LLMs as the brain and tools as the body. Tools are defined using tool definitions. Different clients support different tool definition formats.',
-  },
-  'vendor-specific': {
-    title: 'Vendor Specific',
-    body: 'Tool definition formats that are tied to a specific vendor ecosystem or platform.',
-  },
-  'vendor-agnostic': {
-    title: 'Vendor Agnostic',
-    body: 'Tool definition formats that are not tied to a specific vendor ecosystem or platform.',
-  },
-  'mcp': {
-    title: 'MCP',
-    body: 'Model Context Protocol, a vendor-agnostic standard for tool definitions.<br><br>https://modelcontextprotocol.io',
-  },
-  'shared-context': {
-    title: 'Shared Context',
-    body: 'These extensions share context with the main process. That being said, skills invoked in the main context can spawn subagents with isolated contexts.',
-  },
-  'unconditional-injection': {
-    title: 'Unconditional Injection',
-    body: 'These prompts are always injected, regardless of the input. A 1000 token AGENTS.md gets injected even if the input is just "hello."',
-  },
-  'agents-md': {
-    title: 'AGENTS.md',
-    body: 'A vendor-agnostic format for unconditional prompt injection.<br><br>https://agents.md/',
-  },
-  'claude-md': {
-    title: 'CLAUDE.md',
-    body: 'A Claude Code-specific format for unconditional prompt injection.',
-  },
-  'copilot-instructions': {
-    title: 'copilot-instructions.md',
-    body: 'A GitHub Copilot-specific format for unconditional prompt injection.',
-  },
-  'cursorrules': {
-    title: '.cursorrules',
-    body: 'A Cursor-specific format for unconditional prompt injection.',
-  },
-  'uncond-etc': {
-    title: 'Other Unconditional Files',
-    body: '',
-  },
-  'conditional-injection': {
-    title: 'Conditional Injection (Skills)',
-    body: 'The context is augmented only when specific conditions are met. This reduces context bloat thanks to progressive disclosure.',
-  },
-  'explicit-injection': {
-    title: 'Explicit Injection',
-    body: 'These prompts are injected only when explicitly invoked using e.g. slash commands.',
-  },
-  'windsurf-workflows': {
-    title: 'Windsurf Workflows',
-    body: 'https://docs.windsurf.com/windsurf/cascade/workflows',
-  },
-  'explicit-etc': {
-    title: 'Other Explicit Injections',
-    body: '',
-  },
-  'claude-skills': {
-    title: 'Claude Skills',
-    body: 'https://code.claude.com/docs/en/skills',
-  },
-  'windsurf-skills': {
-    title: 'Windsurf Skills',
-    body: 'https://docs.windsurf.com/windsurf/cascade/skills',
-  },
-  'skills-sh': {
-    title: 'Skills.sh',
-    body: 'A vendor agnostic format for defining and distributing agent skills, supported by Amp, Cline, Codex, Cursor, Gemini CLI, GitHub Copilot, Kimi Code CLI, and OpenCode.<br><br>https://skills.sh/',
-  },
-  'antigravity-skills': {
-    title: 'Antigravity Skills',
-    body: 'https://antigravity.google/docs/skills#how-the-agent-uses-skills',
-  },
-  'cursor-skills': {
-    title: 'Cursor Skills',
-    body: 'https://cursor.com/docs/skills',
-  },
-  'codex-skills': {
-    title: 'Codex Skills',
-    body: 'https://developers.openai.com/codex/skills/',
-  },
-  'overlap-etc': {
-    title: 'Other Skills',
-    body: '',
-  },
-  'implicit-injection': {
-    title: 'Implicit Injection',
-    body: 'These prompts contain frontmatter with a description field. If a given input aligns with the provided description, the specified prompt is injected.',
-  },
-  'isolated-context': {
-    title: 'Isolated Context',
-    body: 'These extensions have a context that is isolated from the main context.',
-  },
-  'subagents': {
-    title: 'Subagents',
-    body: 'Agents spawned by the primary or parent agent that solve specific sub-tasks using an isolated context. This enables parallelization and reduces context bloat in the main agent.',
-  },
-};
+// ── Build-time data (rendered by Jekyll on GitHub Pages) ──
+const taxonomyData = JSON.parse(document.getElementById('taxonomy-data').textContent);
+const info = taxonomyData.nodes || {};
+const lists = taxonomyData.lists || {};
 
 // ── Overlay ──
 const overlayEl = document.getElementById('overlay');
@@ -717,42 +613,43 @@ function centeredYPositions(boxKey, count, gap = 28) {
   return Array.from({ length: count }, (_, i) => startY + i * gap);
 }
 
-const uncondYs = centeredYPositions('unconditional-injection', 5);
-const explicitYs = centeredYPositions('explicit-injection', 2);
-const overlapYs = centeredYPositions('implicit-injection', 7);
 const explicitBox = layoutByKey['explicit-injection'];
 const implicitBox = layoutByKey['implicit-injection'];
 const overlapLeft = Math.max(explicitBox.x, implicitBox.x);
 const overlapRight = Math.min(explicitBox.x + explicitBox.w, implicitBox.x + implicitBox.w);
 const overlapCenterX = (overlapLeft + overlapRight) / 2;
-const isolatedY = centeredYPositions('isolated-context', 1)[0];
+const uncondCenterX = layoutByKey['unconditional-injection'].x + layoutByKey['unconditional-injection'].w / 2;
+const explicitLeftCenterX = explicitBox.x + (overlapLeft - explicitBox.x) / 2;
+const isolatedCenterX = layoutByKey['isolated-context'].x + layoutByKey['isolated-context'].w / 2;
 const vendorAgnosticBox = layoutByKey['vendor-agnostic'];
+const vendorAgnosticCenterX = vendorAgnosticBox.x + vendorAgnosticBox.w / 2;
 const vendorAgnosticTitleBottom = vendorAgnosticBox.y + PAD + TITLE_SIZE;
-const vendorAgnosticY = vendorAgnosticTitleBottom + 14;
+const toolsStartY = vendorAgnosticTitleBottom + 14;
+
+const unconditionalKeys = lists.unconditional || [];
+const explicitKeys = lists.explicit || [];
+const overlapKeys = lists.overlap || [];
+const isolatedKeys = lists.isolated || [];
+const toolKeys = lists.tools || [];
+
+const uncondYs = centeredYPositions('unconditional-injection', unconditionalKeys.length);
+const explicitYs = centeredYPositions('explicit-injection', explicitKeys.length);
+const overlapYs = centeredYPositions('implicit-injection', overlapKeys.length);
+const isolatedYs = centeredYPositions('isolated-context', isolatedKeys.length);
+
+function getLabelForKey(key) {
+  if (info[key] && info[key].label) return info[key].label;
+  if (info[key] && info[key].title) return info[key].title;
+  return titleCase(key);
+}
 
 // ── Items ──
 const items = [
-  // unconditional children
-  { key: 'agents-md',            label: 'AGENTS.md',               x: 177, y: uncondYs[0] },
-  { key: 'claude-md',            label: 'CLAUDE.md',               x: 177, y: uncondYs[1] },
-  { key: 'copilot-instructions', label: 'copilot-instructions.md', x: 177, y: uncondYs[2] },
-  { key: 'cursorrules',          label: '.cursorrules',            x: 177, y: uncondYs[3] },
-  { key: 'uncond-etc',           label: 'etc.',                    x: 177, y: uncondYs[4] },
-  // explicit (left sub-box, non-overlap zone)
-  { key: 'windsurf-workflows',   label: 'Windsurf Workflows',      x: 414, y: explicitYs[0] },
-  { key: 'explicit-etc',         label: 'etc.',                    x: 414, y: explicitYs[1] },
-  // overlap zone (between the two sub-boxes)
-  { key: 'skills-sh',            label: 'Skills.sh',               x: overlapCenterX, y: overlapYs[0] },
-  { key: 'antigravity-skills',   label: 'Antigravity Skills',      x: overlapCenterX, y: overlapYs[1] },
-  { key: 'cursor-skills',        label: 'Cursor Skills',           x: overlapCenterX, y: overlapYs[2] },
-  { key: 'codex-skills',         label: 'Codex Skills',            x: overlapCenterX, y: overlapYs[3] },
-  { key: 'claude-skills',        label: 'Claude Skills',           x: overlapCenterX, y: overlapYs[4] },
-  { key: 'windsurf-skills',      label: 'Windsurf Skills',         x: overlapCenterX, y: overlapYs[5] },
-  { key: 'overlap-etc',          label: 'etc.',                    x: overlapCenterX, y: overlapYs[6] },
-  // isolated children
-  { key: 'subagents',            label: 'Subagents',               x: 967, y: isolatedY },
-  // tools children
-  { key: 'mcp',                  label: 'MCP',                     x: 807, y: vendorAgnosticY },
+  ...unconditionalKeys.map((key, i) => ({ key, label: getLabelForKey(key), x: uncondCenterX, y: uncondYs[i] })),
+  ...explicitKeys.map((key, i) => ({ key, label: getLabelForKey(key), x: explicitLeftCenterX, y: explicitYs[i] })),
+  ...overlapKeys.map((key, i) => ({ key, label: getLabelForKey(key), x: overlapCenterX, y: overlapYs[i] })),
+  ...isolatedKeys.map((key, i) => ({ key, label: getLabelForKey(key), x: isolatedCenterX, y: isolatedYs[i] })),
+  ...toolKeys.map((key, i) => ({ key, label: getLabelForKey(key), x: vendorAgnosticCenterX, y: toolsStartY + i * 26 })),
 ];
 
 function titleCase(s) {

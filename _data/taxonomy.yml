@@ -1,0 +1,152 @@
+page:
+  heading: Agentic Development Environment Extension Taxonomy
+  subtitle: There has been a proliferation of agentic development environment extensions from competing vendors. As a result, the market has profoundly inconsistent nomenclature and standards that make the domain space seem unecessarily complex. This page is an attempt to simplify and disambiguate the available offerings.
+  repo_url: https://github.com/droctothorpe/adeet
+
+nodes:
+  llm-dev-tool-extensions:
+    title: Agentic Development Environment Extensions
+    body: Extensions / plugins for agentic development environments such as Claude Code, Codex, Cursor, Windsurf, etc.
+
+  context-injection:
+    title: Context Injection
+    body: Extensions that inject data into the context to improve outputs or achieve specific goals.
+
+  tool-definitions:
+    title: Tool Definitions
+    body: Tools are essentially just functions that agents can call. LLMs can only generate text. To interact with their environment, they must use tools. At the risk of oversimplifying things, you can think of LLMs as the brain and tools as the body. Tools are defined using tool definitions. Different agentic development environments support different tool definition formats.
+
+  vendor-specific:
+    title: Vendor Specific
+    body: Tool definition formats that are tied to a specific vendor ecosystem or platform.
+
+  vendor-agnostic:
+    title: Vendor Agnostic
+    body: Tool definition formats that are not tied to a specific vendor ecosystem or platform.
+
+  mcp:
+    title: MCP
+    label: MCP
+    body: Model Context Protocol, a vendor-agnostic standard for tool definitions.<br><br>https://modelcontextprotocol.io
+
+  shared-context:
+    title: Shared Context
+    body: These extensions consume tokens in the main context. That being said, specific skills invoked in the main context can and do spawn subagents with isolated contexts.
+
+  unconditional-injection:
+    title: Unconditional Injection
+    body: These prompts are always injected, regardless of input. For example, a 1000 token AGENTS.md gets injected even if the input prompt is simply, "Hello."
+
+  agents-md:
+    title: AGENTS.md
+    label: AGENTS.md
+    body: A vendor-agnostic format for unconditional prompt injection.<br><br>https://agents.md/
+
+  claude-md:
+    title: CLAUDE.md
+    label: CLAUDE.md
+    body: A Claude Code-specific format for unconditional prompt injection.<br><br>https://code.claude.com/docs/en/memory#claude-md-files
+
+  copilot-instructions:
+    title: copilot-instructions.md
+    label: copilot-instructions.md
+    body: A GitHub Copilot-specific format for unconditional prompt injection.<br><br>https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions#creating-custom-instructions
+
+  cursorrules:
+    title: .cursorrules
+    label: .cursorrules
+    body: A Cursor-specific format for unconditional prompt injection.<br><br>https://cursor.com/docs/rules
+
+  uncond-etc:
+    title: Other Unconditional Files
+    label: etc.
+    body: ""
+
+  conditional-injection:
+    title: Conditional Injection (Skills)
+    body: The context is augmented only when specific conditions are met. This reduces context bloat thanks to progressive disclosure.
+
+  explicit-injection:
+    title: Explicit Injection
+    body: These prompts are injected only when explicitly invoked using e.g. slash commands.
+
+  windsurf-workflows:
+    title: Windsurf Workflows
+    label: Windsurf Workflows
+    body: https://docs.windsurf.com/windsurf/cascade/workflows
+
+  explicit-etc:
+    title: Other Explicit Injections
+    label: etc.
+    body: ""
+
+  claude-skills:
+    title: Claude Skills
+    label: Claude Skills
+    body: https://code.claude.com/docs/en/skills
+
+  windsurf-skills:
+    title: Windsurf Skills
+    label: Windsurf Skills
+    body: https://docs.windsurf.com/windsurf/cascade/skills
+
+  skills-sh:
+    title: Skills.sh
+    label: Skills.sh
+    body: A vendor agnostic format for defining and distributing agent skills, supported by Amp, Cline, Codex, Cursor, Gemini CLI, GitHub Copilot, Kimi Code CLI, and OpenCode.<br><br>https://skills.sh/
+
+  antigravity-skills:
+    title: Antigravity Skills
+    label: Antigravity Skills
+    body: https://antigravity.google/docs/skills#how-the-agent-uses-skills
+
+  cursor-skills:
+    title: Cursor Skills
+    label: Cursor Skills
+    body: https://cursor.com/docs/skills
+
+  codex-skills:
+    title: Codex Skills
+    label: Codex Skills
+    body: https://developers.openai.com/codex/skills/
+
+  overlap-etc:
+    title: Other Skills
+    label: etc.
+    body: ""
+
+  implicit-injection:
+    title: Implicit Injection
+    body: These prompts contain frontmatter with a description field. If a given input aligns with the provided description, the specified prompt is injected. It's kind of like have an assistant who doesn't just do what you need but also proactively anticipates what you might need based on the situation.
+
+  isolated-context:
+    title: Isolated Context
+    body: These extensions have a context that is isolated from the main context.
+
+  subagents:
+    title: Subagents
+    label: Subagents
+    body: Agents spawned by the primary or parent agent that solve specific sub-tasks using an isolated context. This enables parallelization and reduces context bloat in the main agent. Studies demonstrate that LLM performance degrades significantly as context size increases (https://arxiv.org/abs/2502.05167). Subagents with isolated contexts can mitigate this issue.
+
+lists:
+  unconditional:
+    - agents-md
+    - claude-md
+    - copilot-instructions
+    - cursorrules
+    - uncond-etc
+  explicit:
+    - windsurf-workflows
+    - explicit-etc
+  overlap:
+    - skills-sh
+    - antigravity-skills
+    - cursor-skills
+    - codex-skills
+    - claude-skills
+    - windsurf-skills
+    - overlap-etc
+  isolated:
+    - subagents
+  tools:
+    - mcp
