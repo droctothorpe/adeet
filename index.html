@@ -45,6 +45,12 @@
     --hint-bg: rgba(12, 22, 38, 0.72);
     --hint-border: rgba(102, 178, 255, 0.25);
     --hint-text: #a8c5e4;
+    --stroke-explicit: rgba(102, 178, 255, 0.3);
+    --fill-explicit: rgba(102, 178, 255, 0.06);
+    --stroke-implicit: rgba(255, 130, 130, 0.3);
+    --fill-implicit: rgba(255, 130, 130, 0.06);
+    --stroke-vendor: rgba(174, 123, 255, 0.34);
+    --fill-vendor: rgba(174, 123, 255, 0.08);
     --diagram-extra-offset-px: 0px;
   }
 
@@ -86,6 +92,10 @@
     --hint-bg: rgba(246, 251, 255, 0.78);
     --hint-border: rgba(32, 118, 202, 0.28);
     --hint-text: #2f547a;
+    --stroke-explicit: rgba(32, 118, 202, 0.3);
+    --fill-explicit: rgba(32, 118, 202, 0.06);
+    --stroke-implicit: rgba(212, 92, 92, 0.3);
+    --fill-implicit: rgba(212, 92, 92, 0.06);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -680,21 +690,21 @@ const T = 72; // base vertical offset for page title/subtitle area
 const SUBTITLE_BOX_GAP = 10; // desired gap between subtitle bottom and top outer box
 
 const boxes = [
-  { key: 'llm-dev-tool-extensions', x: 10,  y: 10+T,  w: 1080, h: 574, stroke: STROKE.outer,    fill: FILL.outer },
+  { key: 'llm-dev-tool-extensions', x: 10,  y: 10+T,  w: 1080, h: 574, stroke: STROKE.shared,   fill: FILL.shared },
   { key: 'context-injection',      x: 24,  y: 44+T,  w: 1052, h: 416, stroke: STROKE.shared,   fill: FILL.shared },
   { key: 'tool-definitions',       x: 24,  y: 474+T, w: 1052, h: 96,  stroke: STROKE.shared,   fill: FILL.shared },
-  { key: 'vendor-specific',        x: 38,  y: 508+T, w: 505,  h: 48,  stroke: 'rgba(174, 123, 255, 0.34)', fill: 'rgba(174, 123, 255, 0.08)' },
-  { key: 'vendor-agnostic',        x: 557, y: 508+T, w: 505,  h: 48,  stroke: 'rgba(174, 123, 255, 0.34)', fill: 'rgba(174, 123, 255, 0.08)' },
+  { key: 'vendor-specific',        x: 38,  y: 508+T, w: 505,  h: 48,  stroke: STROKE.shared, fill: FILL.shared },
+  { key: 'vendor-agnostic',        x: 557, y: 508+T, w: 505,  h: 48,  stroke: STROKE.shared, fill: FILL.shared },
   { key: 'shared-context',         x: 38,  y: 78+T,  w: 820,  h: 368, stroke: STROKE.shared,   fill: FILL.shared },
-  { key: 'unconditional-injection',x: 52,  y: 112+T, w: 250,  h: 320, stroke: STROKE.uncond,   fill: FILL.uncond },
-  { key: 'conditional-injection',  x: 316, y: 112+T, w: 530,  h: 320, stroke: STROKE.cond,     fill: FILL.cond },
+  { key: 'unconditional-injection',x: 52,  y: 112+T, w: 250,  h: 320, stroke: STROKE.shared,   fill: FILL.shared },
+  { key: 'conditional-injection',  x: 316, y: 112+T, w: 530,  h: 320, stroke: STROKE.shared,   fill: FILL.shared },
   { key: 'isolated-context',       x: 872, y: 78+T,  w: 190,  h: 150, stroke: STROKE.shared,   fill: FILL.shared },
 ];
 
 // Explicit / implicit injection sub-boxes (overlapping inside conditional)
 const subBoxes = [
-  { key: 'explicit-injection',  x: 330, y: 146+T, w: 332, h: 272, stroke: STROKE.venn, fill: 'var(--sub-fill)' },
-  { key: 'implicit-injection',  x: 522, y: 146+T, w: 310, h: 272, stroke: STROKE.venn, fill: 'var(--sub-fill)' },
+  { key: 'explicit-injection',  x: 330, y: 146+T, w: 332, h: 272, stroke: STROKE.shared, fill: FILL.shared },
+  { key: 'implicit-injection',  x: 522, y: 146+T, w: 310, h: 272, stroke: STROKE.shared, fill: FILL.shared },
 ];
 
 const layoutByKey = Object.fromEntries([...boxes, ...subBoxes].map(d => [d.key, d]));
