@@ -132,8 +132,8 @@
 
   .canvas-wrap {
     position: relative;
-    width: min(100vw, calc(100vh * 1100 / 650));
-    height: calc(min(100vh, calc(100vw * 650 / 1100)) + var(--diagram-extra-offset-px));
+    width: min(100vw, calc(100vh * 1100 / 666));
+    height: calc(min(100vh, calc(100vw * 666 / 1100)) + var(--diagram-extra-offset-px));
     z-index: 1;
   }
 
@@ -145,7 +145,7 @@
   }
 
   .page-footer {
-    width: min(100vw, calc(100vh * 1100 / 650));
+    width: min(100vw, calc(100vh * 1100 / 666));
     padding: 10px;
     color: var(--text-body);
     font-family: 'IBM Plex Sans', sans-serif;
@@ -177,7 +177,7 @@
   .page-head h1 {
     margin: 0;
     font-family: 'Manrope', sans-serif;
-    font-size: 30px;
+    font-size: 28px;
     font-weight: 700;
     letter-spacing: 0.03em;
     color: var(--page-title);
@@ -650,7 +650,7 @@ function hideOverlay(force = false) {
 }
 
 // ── Constants ──
-const W = 1100, H = 650, R = 12;
+const W = 1100, H = 666, R = 12;
 const PAD = 8;         // tighter top padding so titles sit closer to box edges
 const TITLE_SIZE = 12; // uniform title font size
 const TITLE_COLOR = 'var(--title-color)';
@@ -680,21 +680,21 @@ const T = 72; // base vertical offset for page title/subtitle area
 const SUBTITLE_BOX_GAP = 10; // desired gap between subtitle bottom and top outer box
 
 const boxes = [
-  { key: 'llm-dev-tool-extensions', x: 10,  y: 10+T,  w: 1080, h: 564, stroke: STROKE.outer,    fill: FILL.outer },
-  { key: 'context-injection',      x: 24,  y: 44+T,  w: 1052, h: 420, stroke: STROKE.shared,   fill: FILL.shared },
-  { key: 'tool-definitions',       x: 24,  y: 474+T, w: 1052, h: 100, stroke: STROKE.shared,   fill: FILL.shared },
-  { key: 'vendor-specific',        x: 38,  y: 512+T, w: 510,  h: 52,  stroke: STROKE.shared,   fill: 'var(--sub-fill)' },
-  { key: 'vendor-agnostic',        x: 552, y: 512+T, w: 510,  h: 52,  stroke: STROKE.shared,   fill: 'var(--sub-fill)' },
-  { key: 'shared-context',         x: 38,  y: 82+T,  w: 820,  h: 382, stroke: STROKE.shared,   fill: FILL.shared },
-  { key: 'unconditional-injection',x: 52,  y: 120+T, w: 250,  h: 334, stroke: STROKE.uncond,   fill: FILL.uncond },
-  { key: 'conditional-injection',  x: 316, y: 120+T, w: 530,  h: 334, stroke: STROKE.cond,     fill: FILL.cond },
-  { key: 'isolated-context',       x: 872, y: 82+T,  w: 190,  h: 150, stroke: STROKE.shared,   fill: FILL.shared },
+  { key: 'llm-dev-tool-extensions', x: 10,  y: 10+T,  w: 1080, h: 574, stroke: STROKE.outer,    fill: FILL.outer },
+  { key: 'context-injection',      x: 24,  y: 44+T,  w: 1052, h: 416, stroke: STROKE.shared,   fill: FILL.shared },
+  { key: 'tool-definitions',       x: 24,  y: 474+T, w: 1052, h: 96,  stroke: STROKE.shared,   fill: FILL.shared },
+  { key: 'vendor-specific',        x: 38,  y: 508+T, w: 505,  h: 48,  stroke: 'rgba(174, 123, 255, 0.34)', fill: 'rgba(174, 123, 255, 0.08)' },
+  { key: 'vendor-agnostic',        x: 557, y: 508+T, w: 505,  h: 48,  stroke: 'rgba(174, 123, 255, 0.34)', fill: 'rgba(174, 123, 255, 0.08)' },
+  { key: 'shared-context',         x: 38,  y: 78+T,  w: 820,  h: 368, stroke: STROKE.shared,   fill: FILL.shared },
+  { key: 'unconditional-injection',x: 52,  y: 112+T, w: 250,  h: 320, stroke: STROKE.uncond,   fill: FILL.uncond },
+  { key: 'conditional-injection',  x: 316, y: 112+T, w: 530,  h: 320, stroke: STROKE.cond,     fill: FILL.cond },
+  { key: 'isolated-context',       x: 872, y: 78+T,  w: 190,  h: 150, stroke: STROKE.shared,   fill: FILL.shared },
 ];
 
 // Explicit / implicit injection sub-boxes (overlapping inside conditional)
 const subBoxes = [
-  { key: 'explicit-injection',  x: 330, y: 168+T, w: 332, h: 272, stroke: STROKE.venn, fill: 'var(--sub-fill)' },
-  { key: 'implicit-injection',  x: 522, y: 168+T, w: 310, h: 272, stroke: STROKE.venn, fill: 'var(--sub-fill)' },
+  { key: 'explicit-injection',  x: 330, y: 146+T, w: 332, h: 272, stroke: STROKE.venn, fill: 'var(--sub-fill)' },
+  { key: 'implicit-injection',  x: 522, y: 146+T, w: 310, h: 272, stroke: STROKE.venn, fill: 'var(--sub-fill)' },
 ];
 
 const layoutByKey = Object.fromEntries([...boxes, ...subBoxes].map(d => [d.key, d]));
@@ -718,7 +718,7 @@ const overlapCenterX = (overlapLeft + overlapRight) / 2;
 const isolatedY = centeredYPositions('isolated-context', 1)[0];
 const vendorAgnosticBox = layoutByKey['vendor-agnostic'];
 const vendorAgnosticTitleBottom = vendorAgnosticBox.y + PAD + TITLE_SIZE;
-const vendorAgnosticY = (vendorAgnosticTitleBottom + PAD + (vendorAgnosticBox.y + vendorAgnosticBox.h - PAD)) / 2;
+const vendorAgnosticY = vendorAgnosticTitleBottom + 14;
 
 // ── Items ──
 const items = [
@@ -883,7 +883,7 @@ function updateDiagramYOffset() {
   const wrapRect = wrapEl.getBoundingClientRect();
   if (wrapRect.height <= 0) return;
 
-  const baseWrapHeightPx = Math.min(window.innerHeight, window.innerWidth * 650 / 1100);
+  const baseWrapHeightPx = Math.min(window.innerHeight, window.innerWidth * H / W);
   if (baseWrapHeightPx <= 0) return;
   const baseScale = baseWrapHeightPx / H;
 
