@@ -277,6 +277,7 @@
 <script>
 // ── Info map ──
 const info = {
+  'llm-dev-tool-extensions':  { title: 'LLM Dev Tool Extensions',        body: 'Extensions that enhance LLM development capabilities.' },
   'context-injection':       { title: 'Context Injection',              body: 'All of these extensions leverage context injection to improve outputs.' },
   'shared-context':          { title: 'Shared Context',                 body: 'These extensions share context with the main process. That being said, skills invoked in the main context can spawn subagents with isolated contexts.' },
   'unconditional-injection': { title: 'Unconditional Injection',        body: 'These prompts are always injected, regardless of the input. A 1000 token AGENTS.md gets injected even if the input is merely "hello."' },
@@ -382,40 +383,41 @@ const FILL = {
 const T = 72; // vertical offset for page title and subtitle padding
 
 const boxes = [
-  { key: 'context-injection',      x: 10,  y: 10+T,  w: 1080, h: 564, stroke: STROKE.outer,    fill: FILL.outer },
-  { key: 'shared-context',         x: 24,  y: 44+T,  w: 820,  h: 520, stroke: STROKE.shared,   fill: FILL.shared },
-  { key: 'unconditional-injection',x: 38,  y: 82+T,  w: 250,  h: 472, stroke: STROKE.uncond,   fill: FILL.uncond },
-  { key: 'conditional-injection',  x: 302, y: 82+T,  w: 530,  h: 472, stroke: STROKE.cond,     fill: FILL.cond },
-  { key: 'isolated-context',       x: 858, y: 44+T,  w: 218,  h: 170, stroke: STROKE.isolated, fill: FILL.isolated },
+  { key: 'llm-dev-tool-extensions', x: 10,  y: 10+T,  w: 1080, h: 564, stroke: STROKE.outer,    fill: FILL.outer },
+  { key: 'context-injection',      x: 24,  y: 44+T,  w: 1052, h: 520, stroke: STROKE.shared,   fill: FILL.shared },
+  { key: 'shared-context',         x: 38,  y: 82+T,  w: 820,  h: 472, stroke: STROKE.shared,   fill: FILL.shared },
+  { key: 'unconditional-injection',x: 52,  y: 120+T, w: 250,  h: 424, stroke: STROKE.uncond,   fill: FILL.uncond },
+  { key: 'conditional-injection',  x: 316, y: 120+T, w: 530,  h: 424, stroke: STROKE.cond,     fill: FILL.cond },
+  { key: 'isolated-context',       x: 872, y: 82+T,  w: 190,  h: 170, stroke: STROKE.isolated, fill: FILL.isolated },
 ];
 
 // Explicit / implicit injection sub-boxes (overlapping inside conditional)
 const subBoxes = [
-  { key: 'explicit-injection',  x: 316, y: 130+T, w: 310, h: 420, stroke: STROKE.venn, fill: 'var(--sub-fill)' },
-  { key: 'implicit-injection',  x: 510, y: 130+T, w: 310, h: 420, stroke: STROKE.venn, fill: 'var(--sub-fill)' },
+  { key: 'explicit-injection',  x: 330, y: 168+T, w: 310, h: 370, stroke: STROKE.venn, fill: 'var(--sub-fill)' },
+  { key: 'implicit-injection',  x: 524, y: 168+T, w: 310, h: 370, stroke: STROKE.venn, fill: 'var(--sub-fill)' },
 ];
 
 // ── Items ──
 const items = [
   // unconditional children
-  { key: 'agents-md',            label: 'AGENTS.md',               x: 163, y: 240+T },
-  { key: 'claude-md',            label: 'CLAUDE.md',               x: 163, y: 275+T },
-  { key: 'copilot-instructions', label: 'copilot-instructions.md', x: 163, y: 310+T },
-  { key: 'uncond-etc',           label: 'etc.',                    x: 163, y: 345+T },
+  { key: 'agents-md',            label: 'AGENTS.md',               x: 177, y: 278+T },
+  { key: 'claude-md',            label: 'CLAUDE.md',               x: 177, y: 313+T },
+  { key: 'copilot-instructions', label: 'copilot-instructions.md', x: 177, y: 348+T },
+  { key: 'uncond-etc',           label: 'etc.',                    x: 177, y: 383+T },
   // explicit (left sub-box, non-overlap zone)
-  { key: 'claude-commands',      label: 'Claude Commands',         x: 400, y: 310+T },
-  { key: 'windsurf-workflows',   label: 'Windsurf Workflows',      x: 400, y: 345+T },
-  { key: 'explicit-etc',         label: 'etc.',                    x: 400, y: 380+T },
+  { key: 'claude-commands',      label: 'Claude Commands',         x: 414, y: 348+T },
+  { key: 'windsurf-workflows',   label: 'Windsurf Workflows',      x: 414, y: 383+T },
+  { key: 'explicit-etc',         label: 'etc.',                    x: 414, y: 418+T },
   // overlap zone (between the two sub-boxes)
-  { key: 'claude-skills',        label: 'Claude Skills',           x: 570, y: 310+T },
-  { key: 'windsurf-skills',      label: 'Windsurf Skills',         x: 570, y: 345+T },
-  { key: 'overlap-etc',          label: 'etc.',                    x: 570, y: 380+T },
+  { key: 'claude-skills',        label: 'Claude Skills',           x: 584, y: 348+T },
+  { key: 'windsurf-skills',      label: 'Windsurf Skills',         x: 584, y: 383+T },
+  { key: 'overlap-etc',          label: 'etc.',                    x: 584, y: 418+T },
   // isolated children
-  { key: 'subagents',            label: 'Subagents',               x: 967, y: 129+T },
+  { key: 'subagents',            label: 'Subagents',               x: 967, y: 167+T },
 ];
 
 function titleCase(s) {
-  return s.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  return s.replace(/-/g, ' ').replace(/\bllm\b/g, 'LLM').replace(/\b\w/g, c => c.toUpperCase());
 }
 
 // ── Build SVG ──
