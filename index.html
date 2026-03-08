@@ -45,6 +45,7 @@
     --hint-bg: rgba(12, 22, 38, 0.72);
     --hint-border: rgba(102, 178, 255, 0.25);
     --hint-text: #a8c5e4;
+    --diagram-extra-offset-px: 0px;
   }
 
   body.light-mode {
@@ -95,9 +96,10 @@
     font-family: 'IBM Plex Sans', sans-serif;
     min-height: 100vh;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    overflow: hidden;
+    justify-content: flex-start;
+    overflow: auto;
     transition: background 0.3s ease, color 0.3s ease;
   }
 
@@ -131,7 +133,7 @@
   .canvas-wrap {
     position: relative;
     width: min(100vw, calc(100vh * 1100 / 650));
-    height: min(100vh, calc(100vw * 650 / 1100));
+    height: calc(min(100vh, calc(100vw * 650 / 1100)) + var(--diagram-extra-offset-px));
     z-index: 1;
   }
 
@@ -142,12 +144,32 @@
     height: 100%;
   }
 
+  .page-footer {
+    width: min(100vw, calc(100vh * 1100 / 650));
+    padding: 10px;
+    color: var(--text-body);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.35;
+    text-align: right;
+    opacity: 0.95;
+    z-index: 1;
+  }
+  .page-footer a,
+  .page-footer a:visited {
+    color: var(--text-body);
+  }
+  .page-footer a:hover,
+  .page-footer a:active {
+    color: var(--hover-color);
+  }
+
   .page-head {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    padding: 10px 18px 0 10px;
+    padding: 10px 10px 0 10px;
     z-index: 2;
     pointer-events: none;
   }
@@ -164,40 +186,49 @@
 
   .page-head p {
     margin: 8px 0 0;
-    max-width: 980px;
+    max-width: none;
     font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 14px;
+    font-size: 17px;
     font-weight: 400;
     color: var(--text-body);
     line-height: 1.35;
     opacity: 0.95;
     text-wrap: balance;
   }
+  .page-head a,
+  .page-head a:visited {
+    color: var(--text-body);
+  }
+  .page-head a:hover,
+  .page-head a:active {
+    color: var(--hover-color);
+  }
 
   .mode-hint {
-    position: fixed;
-    top: 18px;
-    right: 20px;
+    position: absolute;
+    top: 14px;
+    right: calc(10 / 1100 * 100%);
     z-index: 5;
-    border: 1px solid var(--hint-border);
-    background: var(--hint-bg);
+    border: 0;
+    background: transparent;
     color: var(--hint-text);
     border-radius: 999px;
-    padding: 7px 12px;
+    padding: 0;
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
+    font-size: 10px;
+    font-weight: 600;
     letter-spacing: 0.02em;
-    box-shadow: 0 8px 24px rgba(8, 20, 34, 0.18);
     user-select: none;
-    backdrop-filter: blur(5px);
     animation: hintFade 0.6s ease 0.3s both;
     appearance: none;
     cursor: pointer;
-    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.15s ease;
   }
 
   .mode-hint:hover {
-    border-color: var(--accent-soft);
     transform: translateY(-1px);
   }
 
@@ -208,6 +239,93 @@
   .mode-hint:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
+    padding: 4px;
+  }
+
+  .mode-label {
+    position: relative;
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+    color: var(--hint-text);
+    opacity: 0.95;
+    transition: opacity 0.2s ease;
+  }
+
+  .mode-label-dark::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: currentColor;
+  }
+
+  .mode-label-dark::after {
+    content: '';
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    background: var(--bg-main);
+    top: 1px;
+    left: 4px;
+  }
+
+  .mode-label-light::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    transform: translate(-50%, -50%);
+    background: currentColor;
+    border-radius: 999px;
+  }
+
+  .mode-label-light::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1px;
+    height: 1px;
+    transform: translate(-50%, -50%);
+    background: currentColor;
+    box-shadow:
+      0 -7px 0 0 currentColor,
+      0 7px 0 0 currentColor,
+      -7px 0 0 0 currentColor,
+      7px 0 0 0 currentColor,
+      -5px -5px 0 0 currentColor,
+      5px -5px 0 0 currentColor,
+      -5px 5px 0 0 currentColor,
+      5px 5px 0 0 currentColor;
+  }
+
+  .mode-switch {
+    position: relative;
+    width: 28px;
+    height: 16px;
+    border-radius: 999px;
+    background: #d8dde3;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+  }
+
+  .mode-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    background: #2a313d;
+    transition: transform 0.2s ease;
+  }
+
+  body.light-mode .mode-switch::after {
+    transform: translateX(12px);
   }
 
   .overlay-bg {
@@ -241,7 +359,7 @@
   }
   .overlay-card h2 {
     font-family: 'Manrope', sans-serif;
-    font-size: 21px;
+    font-size: 19px;
     font-weight: 700;
     margin-bottom: 10px;
     color: var(--overlay-heading);
@@ -254,7 +372,7 @@
     line-height: 1.65;
   }
   .overlay-card a {
-    color: var(--accent);
+    color: var(--hover-color);
     text-decoration: underline;
   }
   .overlay-close {
@@ -288,21 +406,43 @@
   }
 
   @media (max-width: 900px) {
-    .mode-hint { top: 12px; right: 12px; font-size: 10px; padding: 6px 10px; }
+    .mode-hint { top: 12px; font-size: 9px; gap: 5px; }
+    .mode-label { width: 10px; height: 10px; }
+    .mode-label-dark::after { width: 7px; height: 7px; left: 3px; }
+    .mode-label-light::before { width: 4px; height: 4px; }
+    .mode-label-light::after {
+      box-shadow:
+        0 -6px 0 0 currentColor,
+        0 6px 0 0 currentColor,
+        -6px 0 0 0 currentColor,
+        6px 0 0 0 currentColor,
+        -4px -4px 0 0 currentColor,
+        4px -4px 0 0 currentColor,
+        -4px 4px 0 0 currentColor,
+        4px 4px 0 0 currentColor;
+    }
+    .mode-switch { width: 24px; height: 14px; }
+    .mode-switch::after { width: 10px; height: 10px; top: 2px; left: 2px; }
+    body.light-mode .mode-switch::after { transform: translateX(10px); }
   }
 </style>
 </head>
 <body>
 
-<button class="mode-hint" id="mode-hint" type="button" aria-label="Toggle color mode">Switch to Light Mode</button>
-
 <div class="canvas-wrap">
+  <button class="mode-hint" id="mode-hint" type="button" aria-label="Toggle color mode">
+    <span class="mode-label mode-label-dark" aria-hidden="true"></span>
+    <span class="mode-switch" aria-hidden="true"></span>
+    <span class="mode-label mode-label-light" aria-hidden="true"></span>
+  </button>
   <div class="page-head">
-    <h1>Large Language Model Developer Tool Extension Taxonomy</h1>
-    <p>There has been a proliferation of LLM Developer Tool Extensions from competing vendors. As a result, the market has profoundly inconsistent nomenclature and standards that make the domain space seem unecessarily complex. This page is an attempt to simplify and disambiguate the offerings in this domain.</p>
+    <h1>Agentic Development Environment Extension Taxonomy</h1>
+    <p>There has been a proliferation of Agentic Develevelopment Environment Extensions from competing vendors. As a result, the market has profoundly inconsistent nomenclature and standards that make the domain space seem unecessarily complex. This page is an attempt to simplify and disambiguate the available offerings.</p>
   </div>
   <svg id="diagram"></svg>
 </div>
+
+<footer class="page-footer">To contribute, go to <a href="https://github.com/droctothorpe/llmdte" target="_blank" rel="noopener noreferrer">https://github.com/droctothorpe/llmdte</a>.</footer>
 
 <div class="overlay-bg" id="overlay">
   <div class="overlay-card">
@@ -439,9 +579,8 @@ let lockedOverlayKey = null;
 
 function setLightMode(enabled) {
   bodyEl.classList.toggle('light-mode', enabled);
-  modeHint.textContent = enabled
-    ? 'Switch to Dark Mode'
-    : 'Switch to Light Mode';
+  modeHint.setAttribute('aria-label', enabled ? 'Switch to Dark Mode' : 'Switch to Light Mode');
+  modeHint.setAttribute('title', enabled ? 'Switch to Dark Mode' : 'Switch to Light Mode');
   modeHint.setAttribute('aria-pressed', String(enabled));
   localStorage.setItem(MODE_KEY, enabled ? 'light' : 'dark');
 }
@@ -537,7 +676,8 @@ const FILL = {
 };
 
 // ── Boxes: { key, x, y, w, h, stroke, fill } ──
-const T = 72; // vertical offset for page title and subtitle padding
+const T = 72; // base vertical offset for page title/subtitle area
+const SUBTITLE_BOX_GAP = 10; // desired gap between subtitle bottom and top outer box
 
 const boxes = [
   { key: 'llm-dev-tool-extensions', x: 10,  y: 10+T,  w: 1080, h: 564, stroke: STROKE.outer,    fill: FILL.outer },
@@ -614,8 +754,10 @@ const svg = d3.select('#diagram')
   .attr('viewBox', `0 0 ${W} ${H}`)
   .attr('preserveAspectRatio', 'xMidYMid meet');
 
+const contentG = svg.append('g').attr('id', 'diagram-content');
+
 // Draw boxes (back to front order)
-const boxG = svg.selectAll('.box')
+const boxG = contentG.selectAll('.box')
   .data(boxes)
   .enter().append('g')
   .attr('class', 'box');
@@ -674,7 +816,7 @@ boxG.each(function(d) {
 });
 
 // Explicit / implicit sub-boxes (overlapping)
-const subG = svg.selectAll('.sub-box')
+const subG = contentG.selectAll('.sub-box')
   .data(subBoxes)
   .enter().append('g')
   .attr('class', 'sub-box');
@@ -727,11 +869,49 @@ subG.each(function(d) {
 });
 
 // ── Items ──
-const itemG = svg.selectAll('.item')
+const itemG = contentG.selectAll('.item')
   .data(items)
   .enter().append('g')
   .attr('class', 'item')
   .attr('cursor', 'pointer');
+
+function updateDiagramYOffset() {
+  const wrapEl = document.querySelector('.canvas-wrap');
+  const subtitleEl = document.querySelector('.page-head p');
+  if (!wrapEl || !subtitleEl) return;
+
+  const wrapRect = wrapEl.getBoundingClientRect();
+  if (wrapRect.height <= 0) return;
+
+  const baseWrapHeightPx = Math.min(window.innerHeight, window.innerWidth * 650 / 1100);
+  if (baseWrapHeightPx <= 0) return;
+  const baseScale = baseWrapHeightPx / H;
+
+  const subtitleRect = subtitleEl.getBoundingClientRect();
+  const subtitleBottomPx = subtitleRect.bottom - wrapRect.top;
+  const outerBoxBaseTopPx = (10 + T) * baseScale;
+  const minOuterBoxTopPx = subtitleBottomPx + SUBTITLE_BOX_GAP * baseScale;
+  const extraOffsetPx = Math.max(0, minOuterBoxTopPx - outerBoxBaseTopPx);
+  const extraOffset = extraOffsetPx / baseScale;
+
+  document.documentElement.style.setProperty('--diagram-extra-offset-px', `${extraOffsetPx}px`);
+  svg.attr('viewBox', `0 0 ${W} ${H + extraOffset}`);
+
+  contentG.attr('transform', `translate(0, ${extraOffset})`);
+}
+
+updateDiagramYOffset();
+window.addEventListener('resize', updateDiagramYOffset);
+
+if ('ResizeObserver' in window) {
+  const resizeObserver = new ResizeObserver(updateDiagramYOffset);
+  const wrapEl = document.querySelector('.canvas-wrap');
+  const headerEl = document.querySelector('.page-head');
+  const subtitleEl = document.querySelector('.page-head p');
+  if (wrapEl) resizeObserver.observe(wrapEl);
+  if (headerEl) resizeObserver.observe(headerEl);
+  if (subtitleEl) resizeObserver.observe(subtitleEl);
+}
 
 // hit area
 itemG.append('rect')
