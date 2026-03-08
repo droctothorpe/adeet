@@ -218,7 +218,13 @@
     pointer-events: none;
     z-index: 100;
   }
-  .overlay-bg.active { display: block; }
+  .overlay-bg.active {
+    display: block;
+  }
+  .overlay-bg.locked {
+    background: var(--overlay-bg);
+    pointer-events: auto;
+  }
   .overlay-card {
     position: fixed;
     background: var(--overlay-card-bg);
@@ -229,6 +235,9 @@
     max-width: 420px;
     width: min(420px, calc(100vw - 20px));
     pointer-events: none;
+  }
+  .overlay-bg.locked .overlay-card {
+    pointer-events: auto;
   }
   .overlay-card h2 {
     font-family: 'Manrope', sans-serif;
@@ -243,6 +252,35 @@
     font-weight: 400;
     color: var(--overlay-copy);
     line-height: 1.65;
+  }
+  .overlay-card a {
+    color: var(--accent);
+    text-decoration: underline;
+  }
+  .overlay-close {
+    display: none;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border: 0;
+    background: transparent;
+    color: var(--overlay-close);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px;
+  }
+  .overlay-close:hover {
+    color: var(--overlay-close-hover);
+  }
+  .overlay-close:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  .overlay-bg.locked .overlay-close {
+    display: block;
   }
   @keyframes hintFade {
     from { opacity: 0; transform: translateY(-8px); }
@@ -268,6 +306,7 @@
 
 <div class="overlay-bg" id="overlay">
   <div class="overlay-card">
+    <button class="overlay-close" id="overlay-close" type="button" aria-label="Close details">x</button>
     <h2 id="overlay-title"></h2>
     <p id="overlay-body"></p>
   </div>
@@ -277,25 +316,114 @@
 <script>
 // ── Info map ──
 const info = {
-  'llm-dev-tool-extensions':  { title: 'LLM Dev Tool Extensions',        body: 'Extensions that enhance LLM development capabilities.' },
-  'context-injection':       { title: 'Context Injection',              body: 'All of these extensions leverage context injection to improve outputs.' },
-  'shared-context':          { title: 'Shared Context',                 body: 'These extensions share context with the main process. That being said, skills invoked in the main context can spawn subagents with isolated contexts.' },
-  'unconditional-injection': { title: 'Unconditional Injection',        body: 'These prompts are always injected, regardless of the input. A 1000 token AGENTS.md gets injected even if the input is merely "hello."' },
-  'agents-md':               { title: 'AGENTS.md',                      body: 'A vendor-agnostic format for unconditional prompt injection.' },
-  'claude-md':               { title: 'CLAUDE.md',                      body: 'A Claude Code-specific format for unconditional prompt injection.' },
-  'copilot-instructions':    { title: 'copilot-instructions.md',        body: 'A GitHub Copilot-specific format for unconditional prompt injection.' },
-  'uncond-etc':              { title: 'Other Unconditional Files',      body: 'Info coming soon.' },
-  'conditional-injection':   { title: 'Conditional Injection (Skills)', body: 'The context is augmented only when specific conditions are met. This reduces context bloat thanks to progressive disclosure.' },
-  'explicit-injection':      { title: 'Explicit Injection',             body: 'These prompts are injected only when explicitly invoked using e.g. slash commands.' },
-  'claude-commands':         { title: 'Claude Commands',                body: 'Info coming soon.' },
-  'windsurf-workflows':      { title: 'Windsurf Workflows',             body: 'Info coming soon.' },
-  'explicit-etc':            { title: 'Other Explicit Injections',      body: 'Info coming soon.' },
-  'claude-skills':           { title: 'Claude Skills',                  body: 'Info coming soon.' },
-  'windsurf-skills':         { title: 'Windsurf Skills',                body: 'Info coming soon.' },
-  'overlap-etc':             { title: 'Other Skills',                   body: 'Info coming soon.' },
-  'implicit-injection':      { title: 'Implicit Injection',             body: 'These prompts contain frontmatter with a description field. If a given input aligns with the provide description, the prompt is injected.' },
-  'isolated-context':        { title: 'Isolated Context',               body: 'These extensions have a context that is isolated from the main context.' },
-  'subagents':               { title: 'Subagents',                      body: 'Info coming soon.' },
+  'llm-dev-tool-extensions': {
+    title: 'LLM Dev Tool Extensions',
+    body: 'Extensions that enhance LLM development capabilities.',
+  },
+  'context-injection': {
+    title: 'Context Injection',
+    body: 'All of these extensions leverage context injection to improve outputs.',
+  },
+  'tool-definitions': {
+    title: 'Tool Definitions',
+    body: 'Tools are just functions that agents can call. LLMs can only generate text. To interact with their environment, they must use tools. At the risk of oversimplifying things, you can think of LLMs as the brain and tools as the body. Tools are defined using tool definitions. Different clients support different tool definition formats.',
+  },
+  'vendor-specific': {
+    title: 'Vendor Specific',
+    body: 'Tool definition formats that are tied to a specific vendor ecosystem or platform.',
+  },
+  'vendor-agnostic': {
+    title: 'Vendor Agnostic',
+    body: 'Tool definition formats that are not tied to a specific vendor ecosystem or platform.',
+  },
+  'mcp': {
+    title: 'MCP',
+    body: 'Model Context Protocol, a vendor-agnostic standard for tool definitions.<br><br>https://modelcontextprotocol.io',
+  },
+  'shared-context': {
+    title: 'Shared Context',
+    body: 'These extensions share context with the main process. That being said, skills invoked in the main context can spawn subagents with isolated contexts.',
+  },
+  'unconditional-injection': {
+    title: 'Unconditional Injection',
+    body: 'These prompts are always injected, regardless of the input. A 1000 token AGENTS.md gets injected even if the input is just "hello."',
+  },
+  'agents-md': {
+    title: 'AGENTS.md',
+    body: 'A vendor-agnostic format for unconditional prompt injection.<br><br>https://agents.md/',
+  },
+  'claude-md': {
+    title: 'CLAUDE.md',
+    body: 'A Claude Code-specific format for unconditional prompt injection.',
+  },
+  'copilot-instructions': {
+    title: 'copilot-instructions.md',
+    body: 'A GitHub Copilot-specific format for unconditional prompt injection.',
+  },
+  'cursorrules': {
+    title: '.cursorrules',
+    body: 'A Cursor-specific format for unconditional prompt injection.',
+  },
+  'uncond-etc': {
+    title: 'Other Unconditional Files',
+    body: '',
+  },
+  'conditional-injection': {
+    title: 'Conditional Injection (Skills)',
+    body: 'The context is augmented only when specific conditions are met. This reduces context bloat thanks to progressive disclosure.',
+  },
+  'explicit-injection': {
+    title: 'Explicit Injection',
+    body: 'These prompts are injected only when explicitly invoked using e.g. slash commands.',
+  },
+  'windsurf-workflows': {
+    title: 'Windsurf Workflows',
+    body: 'https://docs.windsurf.com/windsurf/cascade/workflows',
+  },
+  'explicit-etc': {
+    title: 'Other Explicit Injections',
+    body: '',
+  },
+  'claude-skills': {
+    title: 'Claude Skills',
+    body: 'https://code.claude.com/docs/en/skills',
+  },
+  'windsurf-skills': {
+    title: 'Windsurf Skills',
+    body: 'https://docs.windsurf.com/windsurf/cascade/skills',
+  },
+  'skills-sh': {
+    title: 'Skills.sh',
+    body: 'A vendor agnostic format for defining and distributing agent skills, supported by Amp, Cline, Codex, Cursor, Gemini CLI, GitHub Copilot, Kimi Code CLI, and OpenCode.<br><br>https://skills.sh/',
+  },
+  'antigravity-skills': {
+    title: 'Antigravity Skills',
+    body: 'https://antigravity.google/docs/skills#how-the-agent-uses-skills',
+  },
+  'cursor-skills': {
+    title: 'Cursor Skills',
+    body: 'https://cursor.com/docs/skills',
+  },
+  'codex-skills': {
+    title: 'Codex Skills',
+    body: 'https://developers.openai.com/codex/skills/',
+  },
+  'overlap-etc': {
+    title: 'Other Skills',
+    body: '',
+  },
+  'implicit-injection': {
+    title: 'Implicit Injection',
+    body: 'These prompts contain frontmatter with a description field. If a given input aligns with the provided description, the specified prompt is injected.',
+  },
+  'isolated-context': {
+    title: 'Isolated Context',
+    body: 'These extensions have a context that is isolated from the main context.',
+  },
+  'subagents': {
+    title: 'Subagents',
+    body: 'Agent spawned by the primary or parent agent that solve specific sub-tasks using an isolated context. This enables parallelization and reduces context bloat in the main agent.',
+  },
 };
 
 // ── Overlay ──
@@ -303,9 +431,11 @@ const overlayEl = document.getElementById('overlay');
 const overlayCard = overlayEl.querySelector('.overlay-card');
 const oTitle = document.getElementById('overlay-title');
 const oBody = document.getElementById('overlay-body');
+const overlayCloseBtn = document.getElementById('overlay-close');
 const bodyEl = document.body;
 const modeHint = document.getElementById('mode-hint');
 const MODE_KEY = 'llmdte-theme';
+let lockedOverlayKey = null;
 
 function setLightMode(enabled) {
   bodyEl.classList.toggle('light-mode', enabled);
@@ -322,11 +452,28 @@ modeHint.addEventListener('click', () => {
 });
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') overlayEl.classList.remove('active');
+  if (e.key === 'Escape') hideOverlay(true);
   if (!e.metaKey && !e.ctrlKey && !e.altKey && (e.key === 'l' || e.key === 'L')) {
     setLightMode(!bodyEl.classList.contains('light-mode'));
   }
 });
+
+document.addEventListener('click', e => {
+  if (!lockedOverlayKey) return;
+  if (overlayCard.contains(e.target)) return;
+  hideOverlay(true);
+});
+
+overlayCloseBtn.addEventListener('click', () => hideOverlay(true));
+
+function linkify(text) {
+  return text.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1<\/a>');
+}
+
+function hasOverlayContent(value) {
+  if (typeof value !== 'string') return false;
+  return value.replace(/<br\s*\/?\s*>/gi, '').trim().length > 0;
+}
 
 function positionOverlay(e) {
   if (!e) return;
@@ -341,21 +488,31 @@ function positionOverlay(e) {
   overlayCard.style.top = `${y}px`;
 }
 
-function showOverlay(key, e) {
+function showOverlay(key, e, options = {}) {
+  const { lock = false } = options;
+  if (lockedOverlayKey && !lock) return;
   if (!info[key]) return;
+  if (!hasOverlayContent(info[key].body)) return;
   oTitle.textContent = info[key].title;
-  oBody.textContent = info[key].body;
+  oBody.innerHTML = linkify(info[key].body);
   overlayEl.classList.add('active');
+  if (lock) {
+    lockedOverlayKey = key;
+    overlayEl.classList.add('locked');
+  }
   positionOverlay(e);
 }
 
-function hideOverlay() {
+function hideOverlay(force = false) {
+  if (lockedOverlayKey && !force) return;
+  lockedOverlayKey = null;
+  overlayEl.classList.remove('locked');
   overlayEl.classList.remove('active');
 }
 
 // ── Constants ──
 const W = 1100, H = 650, R = 12;
-const PAD = 14;        // padding inside boxes
+const PAD = 8;         // tighter top padding so titles sit closer to box edges
 const TITLE_SIZE = 12; // uniform title font size
 const TITLE_COLOR = 'var(--title-color)';
 const ITEM_SIZE = 12;
@@ -384,36 +541,68 @@ const T = 72; // vertical offset for page title and subtitle padding
 
 const boxes = [
   { key: 'llm-dev-tool-extensions', x: 10,  y: 10+T,  w: 1080, h: 564, stroke: STROKE.outer,    fill: FILL.outer },
-  { key: 'context-injection',      x: 24,  y: 44+T,  w: 1052, h: 520, stroke: STROKE.shared,   fill: FILL.shared },
-  { key: 'shared-context',         x: 38,  y: 82+T,  w: 820,  h: 472, stroke: STROKE.shared,   fill: FILL.shared },
-  { key: 'unconditional-injection',x: 52,  y: 120+T, w: 250,  h: 424, stroke: STROKE.uncond,   fill: FILL.uncond },
-  { key: 'conditional-injection',  x: 316, y: 120+T, w: 530,  h: 424, stroke: STROKE.cond,     fill: FILL.cond },
-  { key: 'isolated-context',       x: 872, y: 82+T,  w: 190,  h: 170, stroke: STROKE.isolated, fill: FILL.isolated },
+  { key: 'context-injection',      x: 24,  y: 44+T,  w: 1052, h: 420, stroke: STROKE.shared,   fill: FILL.shared },
+  { key: 'tool-definitions',       x: 24,  y: 474+T, w: 1052, h: 100, stroke: STROKE.shared,   fill: FILL.shared },
+  { key: 'vendor-specific',        x: 38,  y: 512+T, w: 510,  h: 52,  stroke: STROKE.shared,   fill: 'var(--sub-fill)' },
+  { key: 'vendor-agnostic',        x: 552, y: 512+T, w: 510,  h: 52,  stroke: STROKE.shared,   fill: 'var(--sub-fill)' },
+  { key: 'shared-context',         x: 38,  y: 82+T,  w: 820,  h: 382, stroke: STROKE.shared,   fill: FILL.shared },
+  { key: 'unconditional-injection',x: 52,  y: 120+T, w: 250,  h: 334, stroke: STROKE.uncond,   fill: FILL.uncond },
+  { key: 'conditional-injection',  x: 316, y: 120+T, w: 530,  h: 334, stroke: STROKE.cond,     fill: FILL.cond },
+  { key: 'isolated-context',       x: 872, y: 82+T,  w: 190,  h: 150, stroke: STROKE.shared,   fill: FILL.shared },
 ];
 
 // Explicit / implicit injection sub-boxes (overlapping inside conditional)
 const subBoxes = [
-  { key: 'explicit-injection',  x: 330, y: 168+T, w: 310, h: 370, stroke: STROKE.venn, fill: 'var(--sub-fill)' },
-  { key: 'implicit-injection',  x: 524, y: 168+T, w: 310, h: 370, stroke: STROKE.venn, fill: 'var(--sub-fill)' },
+  { key: 'explicit-injection',  x: 330, y: 168+T, w: 332, h: 272, stroke: STROKE.venn, fill: 'var(--sub-fill)' },
+  { key: 'implicit-injection',  x: 522, y: 168+T, w: 310, h: 272, stroke: STROKE.venn, fill: 'var(--sub-fill)' },
 ];
+
+const layoutByKey = Object.fromEntries([...boxes, ...subBoxes].map(d => [d.key, d]));
+
+function centeredYPositions(boxKey, count, gap = 35) {
+  const b = layoutByKey[boxKey];
+  if (!b || count < 1) return [];
+  const centerY = b.y + b.h / 2;
+  const startY = centerY - ((count - 1) * gap) / 2;
+  return Array.from({ length: count }, (_, i) => startY + i * gap);
+}
+
+const uncondYs = centeredYPositions('unconditional-injection', 5);
+const explicitYs = centeredYPositions('explicit-injection', 2);
+const overlapYs = centeredYPositions('implicit-injection', 7);
+const explicitBox = layoutByKey['explicit-injection'];
+const implicitBox = layoutByKey['implicit-injection'];
+const overlapLeft = Math.max(explicitBox.x, implicitBox.x);
+const overlapRight = Math.min(explicitBox.x + explicitBox.w, implicitBox.x + implicitBox.w);
+const overlapCenterX = (overlapLeft + overlapRight) / 2;
+const isolatedY = centeredYPositions('isolated-context', 1)[0];
+const vendorAgnosticBox = layoutByKey['vendor-agnostic'];
+const vendorAgnosticTitleBottom = vendorAgnosticBox.y + PAD + TITLE_SIZE;
+const vendorAgnosticY = (vendorAgnosticTitleBottom + PAD + (vendorAgnosticBox.y + vendorAgnosticBox.h - PAD)) / 2;
 
 // ── Items ──
 const items = [
   // unconditional children
-  { key: 'agents-md',            label: 'AGENTS.md',               x: 177, y: 278+T },
-  { key: 'claude-md',            label: 'CLAUDE.md',               x: 177, y: 313+T },
-  { key: 'copilot-instructions', label: 'copilot-instructions.md', x: 177, y: 348+T },
-  { key: 'uncond-etc',           label: 'etc.',                    x: 177, y: 383+T },
+  { key: 'agents-md',            label: 'AGENTS.md',               x: 177, y: uncondYs[0] },
+  { key: 'claude-md',            label: 'CLAUDE.md',               x: 177, y: uncondYs[1] },
+  { key: 'copilot-instructions', label: 'copilot-instructions.md', x: 177, y: uncondYs[2] },
+  { key: 'cursorrules',          label: '.cursorrules',            x: 177, y: uncondYs[3] },
+  { key: 'uncond-etc',           label: 'etc.',                    x: 177, y: uncondYs[4] },
   // explicit (left sub-box, non-overlap zone)
-  { key: 'claude-commands',      label: 'Claude Commands',         x: 414, y: 348+T },
-  { key: 'windsurf-workflows',   label: 'Windsurf Workflows',      x: 414, y: 383+T },
-  { key: 'explicit-etc',         label: 'etc.',                    x: 414, y: 418+T },
+  { key: 'windsurf-workflows',   label: 'Windsurf Workflows',      x: 414, y: explicitYs[0] },
+  { key: 'explicit-etc',         label: 'etc.',                    x: 414, y: explicitYs[1] },
   // overlap zone (between the two sub-boxes)
-  { key: 'claude-skills',        label: 'Claude Skills',           x: 584, y: 348+T },
-  { key: 'windsurf-skills',      label: 'Windsurf Skills',         x: 584, y: 383+T },
-  { key: 'overlap-etc',          label: 'etc.',                    x: 584, y: 418+T },
+  { key: 'skills-sh',            label: 'Skills.sh',               x: overlapCenterX, y: overlapYs[0] },
+  { key: 'antigravity-skills',   label: 'Antigravity Skills',      x: overlapCenterX, y: overlapYs[1] },
+  { key: 'cursor-skills',        label: 'Cursor Skills',           x: overlapCenterX, y: overlapYs[2] },
+  { key: 'codex-skills',         label: 'Codex Skills',            x: overlapCenterX, y: overlapYs[3] },
+  { key: 'claude-skills',        label: 'Claude Skills',           x: overlapCenterX, y: overlapYs[4] },
+  { key: 'windsurf-skills',      label: 'Windsurf Skills',         x: overlapCenterX, y: overlapYs[5] },
+  { key: 'overlap-etc',          label: 'etc.',                    x: overlapCenterX, y: overlapYs[6] },
   // isolated children
-  { key: 'subagents',            label: 'Subagents',               x: 967, y: 167+T },
+  { key: 'subagents',            label: 'Subagents',               x: 967, y: isolatedY },
+  // tools children
+  { key: 'mcp',                  label: 'MCP',                     x: 807, y: vendorAgnosticY },
 ];
 
 function titleCase(s) {
@@ -462,7 +651,13 @@ boxG.each(function(d) {
       d3.select(this).attr('fill', HOVER_COLOR);
       showOverlay(d.key, e);
     })
-    .on('mousemove', function(e) { positionOverlay(e); })
+    .on('mousemove', function(e) {
+      if (!lockedOverlayKey) positionOverlay(e);
+    })
+    .on('click', function(e) {
+      e.stopPropagation();
+      showOverlay(d.key, e, { lock: true });
+    })
     .on('mouseleave', function() {
       d3.select(this).attr('fill', TITLE_COLOR);
       hideOverlay();
@@ -518,7 +713,13 @@ subG.each(function(d) {
       d3.select(this).attr('fill', HOVER_COLOR);
       showOverlay(d.key, e);
     })
-    .on('mousemove', function(e) { positionOverlay(e); })
+    .on('mousemove', function(e) {
+      if (!lockedOverlayKey) positionOverlay(e);
+    })
+    .on('click', function(e) {
+      e.stopPropagation();
+      showOverlay(d.key, e, { lock: true });
+    })
     .on('mouseleave', function() {
       d3.select(this).attr('fill', TITLE_COLOR);
       hideOverlay();
@@ -563,7 +764,11 @@ itemG
     showOverlay(d.key, e);
   })
   .on('mousemove', function(e) {
-    positionOverlay(e);
+    if (!lockedOverlayKey) positionOverlay(e);
+  })
+  .on('click', function(e, d) {
+    e.stopPropagation();
+    showOverlay(d.key, e, { lock: true });
   })
   .on('mouseleave', function() {
     d3.select(this).select('.item-label').attr('fill', ITEM_COLOR);
