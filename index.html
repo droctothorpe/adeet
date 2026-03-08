@@ -27,7 +27,7 @@
     --stroke-venn: rgba(64, 201, 170, 0.23);
     --stroke-isolated: rgba(240, 184, 87, 0.34);
     --fill-outer: rgba(98, 168, 255, 0.035);
-    --fill-shared: rgba(98, 168, 255, 0.02);
+    --fill-shared: rgba(98, 168, 255, 0.06);
     --fill-uncond: rgba(255, 130, 130, 0.06);
     --fill-cond: rgba(64, 201, 170, 0.05);
     --fill-isolated: rgba(240, 184, 87, 0.06);
@@ -73,12 +73,12 @@
     --stroke-cond: rgba(31, 147, 120, 0.36);
     --stroke-venn: rgba(31, 147, 120, 0.25);
     --stroke-isolated: rgba(182, 129, 42, 0.35);
-    --fill-outer: rgba(32, 118, 202, 0.05);
-    --fill-shared: rgba(32, 118, 202, 0.03);
-    --fill-uncond: rgba(212, 92, 92, 0.08);
-    --fill-cond: rgba(31, 147, 120, 0.08);
-    --fill-isolated: rgba(182, 129, 42, 0.08);
-    --sub-fill: rgba(31, 147, 120, 0.045);
+    --fill-outer: rgba(32, 118, 202, 0.035);
+    --fill-shared: rgba(32, 118, 202, 0.06);
+    --fill-uncond: rgba(212, 92, 92, 0.06);
+    --fill-cond: rgba(31, 147, 120, 0.05);
+    --fill-isolated: rgba(182, 129, 42, 0.06);
+    --sub-fill: rgba(31, 147, 120, 0.03);
     --item-hover-fill: rgba(32, 118, 202, 0.1);
     --item-hover-stroke: rgba(32, 118, 202, 0.32);
     --tag-color: rgba(32, 118, 202, 0.55);
@@ -447,7 +447,7 @@
   </button>
   <div class="page-head">
     <h1>Agentic Development Environment Extension Taxonomy</h1>
-    <p>There has been a proliferation of Agentic Develevelopment Environment Extensions from competing vendors. As a result, the market has profoundly inconsistent nomenclature and standards that make the domain space seem unecessarily complex. This page is an attempt to simplify and disambiguate the available offerings.</p>
+    <p>There has been a proliferation of Agentic Development Environment Extensions from competing vendors. As a result, the market has profoundly inconsistent nomenclature and standards that make the domain space seem unecessarily complex. This page is an attempt to simplify and disambiguate the available offerings.</p>
   </div>
   <svg id="diagram"></svg>
 </div>
@@ -467,8 +467,8 @@
 // ── Info map ──
 const info = {
   'llm-dev-tool-extensions': {
-    title: 'LLM Dev Tool Extensions',
-    body: 'Extensions that enhance LLM development capabilities.',
+    title: 'Agentic Development Environment Extensions',
+    body: 'Extensions for plugins for Agentic Development Environments such as Claude Code, Codex, Cursor, Windsurf, etc.',
   },
   'context-injection': {
     title: 'Context Injection',
@@ -816,13 +816,8 @@ boxG.each(function(d) {
     });
 
   const titleEl = g.select('text');
-  if (d.key === 'conditional-injection') {
-    titleEl.text(null);
-    titleEl.append('tspan').text(titleCase(d.key));
-    titleEl.append('tspan').text(' (Skills)');
-  } else {
-    titleEl.text(titleCase(d.key));
-  }
+  const displayTitle = info[d.key] ? info[d.key].title : titleCase(d.key);
+  titleEl.text(displayTitle);
 });
 
 // Explicit / implicit sub-boxes (overlapping)
@@ -860,7 +855,7 @@ subG.each(function(d) {
     .attr('letter-spacing', '0.03em')
     .attr('fill', TITLE_COLOR)
     .attr('cursor', 'pointer')
-    .text(titleCase(d.key))
+    .text(info[d.key] ? info[d.key].title : titleCase(d.key))
     .on('mouseenter', function(e) {
       d3.select(this).attr('fill', HOVER_COLOR);
       showOverlay(d.key, e);
