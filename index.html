@@ -164,7 +164,7 @@
 
   .page-head p {
     margin: 8px 0 0;
-    max-width: 1040px;
+    max-width: 980px;
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 14px;
     font-weight: 400;
@@ -211,17 +211,24 @@
   }
 
   .overlay-bg {
-    display: none; position: fixed; inset: 0;
-    background: var(--overlay-bg); backdrop-filter: blur(2px);
-    z-index: 100; align-items: center; justify-content: center;
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: transparent;
+    pointer-events: none;
+    z-index: 100;
   }
-  .overlay-bg.active { display: flex; }
+  .overlay-bg.active { display: block; }
   .overlay-card {
+    position: fixed;
     background: var(--overlay-card-bg);
     border: 1px solid var(--overlay-card-border);
     border-radius: 14px;
     box-shadow: 0 14px 44px rgba(8, 16, 28, 0.32);
-    padding: 28px 32px; max-width: 480px; width: 90%; position: relative;
+    padding: 20px 22px;
+    max-width: 420px;
+    width: min(420px, calc(100vw - 20px));
+    pointer-events: none;
   }
   .overlay-card h2 {
     font-family: 'Manrope', sans-serif;
@@ -237,16 +244,6 @@
     color: var(--overlay-copy);
     line-height: 1.65;
   }
-  .overlay-close {
-    position: absolute; top: 12px; right: 16px; background: none; border: none;
-    font-size: 18px;
-    cursor: pointer;
-    color: var(--overlay-close);
-    font-family: 'IBM Plex Sans', sans-serif;
-    transition: color 0.15s;
-  }
-  .overlay-close:hover { color: var(--overlay-close-hover); }
-
   @keyframes hintFade {
     from { opacity: 0; transform: translateY(-8px); }
     to { opacity: 1; transform: translateY(0); }
@@ -271,7 +268,6 @@
 
 <div class="overlay-bg" id="overlay">
   <div class="overlay-card">
-    <button class="overlay-close" id="overlay-close">&times;</button>
     <h2 id="overlay-title"></h2>
     <p id="overlay-body"></p>
   </div>
@@ -303,6 +299,7 @@ const info = {
 
 // ── Overlay ──
 const overlayEl = document.getElementById('overlay');
+const overlayCard = overlayEl.querySelector('.overlay-card');
 const oTitle = document.getElementById('overlay-title');
 const oBody = document.getElementById('overlay-body');
 const bodyEl = document.body;
@@ -323,8 +320,6 @@ modeHint.addEventListener('click', () => {
   setLightMode(!bodyEl.classList.contains('light-mode'));
 });
 
-document.getElementById('overlay-close').addEventListener('click', () => overlayEl.classList.remove('active'));
-overlayEl.addEventListener('click', e => { if (e.target === overlayEl) overlayEl.classList.remove('active'); });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') overlayEl.classList.remove('active');
   if (!e.metaKey && !e.ctrlKey && !e.altKey && (e.key === 'l' || e.key === 'L')) {
@@ -332,11 +327,29 @@ document.addEventListener('keydown', e => {
   }
 });
 
-function showOverlay(key) {
+function positionOverlay(e) {
+  if (!e) return;
+  const pad = 12;
+  const offset = 16;
+  const cardRect = overlayCard.getBoundingClientRect();
+  const maxX = window.innerWidth - cardRect.width - pad;
+  const maxY = window.innerHeight - cardRect.height - pad;
+  const x = Math.min(maxX, Math.max(pad, e.clientX + offset));
+  const y = Math.min(maxY, Math.max(pad, e.clientY + offset));
+  overlayCard.style.left = `${x}px`;
+  overlayCard.style.top = `${y}px`;
+}
+
+function showOverlay(key, e) {
   if (!info[key]) return;
   oTitle.textContent = info[key].title;
   oBody.textContent = info[key].body;
   overlayEl.classList.add('active');
+  positionOverlay(e);
+}
+
+function hideOverlay() {
+  overlayEl.classList.remove('active');
 }
 
 // ── Constants ──
@@ -443,9 +456,15 @@ boxG.each(function(d) {
     .attr('letter-spacing', '0.03em')
     .attr('fill', TITLE_COLOR)
     .attr('cursor', 'pointer')
-    .on('click', () => showOverlay(d.key))
-    .on('mouseenter', function() { d3.select(this).attr('fill', HOVER_COLOR); })
-    .on('mouseleave', function() { d3.select(this).attr('fill', TITLE_COLOR); });
+    .on('mouseenter', function(e) {
+      d3.select(this).attr('fill', HOVER_COLOR);
+      showOverlay(d.key, e);
+    })
+    .on('mousemove', function(e) { positionOverlay(e); })
+    .on('mouseleave', function() {
+      d3.select(this).attr('fill', TITLE_COLOR);
+      hideOverlay();
+    });
 
   const titleEl = g.select('text');
   if (d.key === 'conditional-injection') {
@@ -493,9 +512,15 @@ subG.each(function(d) {
     .attr('fill', TITLE_COLOR)
     .attr('cursor', 'pointer')
     .text(titleCase(d.key))
-    .on('click', () => showOverlay(d.key))
-    .on('mouseenter', function() { d3.select(this).attr('fill', HOVER_COLOR); })
-    .on('mouseleave', function() { d3.select(this).attr('fill', TITLE_COLOR); });
+    .on('mouseenter', function(e) {
+      d3.select(this).attr('fill', HOVER_COLOR);
+      showOverlay(d.key, e);
+    })
+    .on('mousemove', function(e) { positionOverlay(e); })
+    .on('mouseleave', function() {
+      d3.select(this).attr('fill', TITLE_COLOR);
+      hideOverlay();
+    });
 });
 
 // ── Items ──
@@ -503,8 +528,7 @@ const itemG = svg.selectAll('.item')
   .data(items)
   .enter().append('g')
   .attr('class', 'item')
-  .attr('cursor', 'pointer')
-  .on('click', (e, d) => showOverlay(d.key));
+  .attr('cursor', 'pointer');
 
 // hit area
 itemG.append('rect')
@@ -532,11 +556,16 @@ itemG.append('text')
 
 // hover
 itemG
-  .on('mouseenter', function() {
+  .on('mouseenter', function(e, d) {
     d3.select(this).select('.item-label').attr('fill', HOVER_COLOR);
+    showOverlay(d.key, e);
   })
-  .on('mouseleave', function(e, d) {
+  .on('mousemove', function(e) {
+    positionOverlay(e);
+  })
+  .on('mouseleave', function() {
     d3.select(this).select('.item-label').attr('fill', ITEM_COLOR);
+    hideOverlay();
   });
 </script>
 </body>
