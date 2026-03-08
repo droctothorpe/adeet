@@ -128,7 +128,51 @@
     transition: background-image 0.3s ease;
   }
 
-  #diagram { position: relative; z-index: 1; width: 100%; height: 100vh; }
+  .canvas-wrap {
+    position: relative;
+    width: min(100vw, calc(100vh * 1100 / 650));
+    height: min(100vh, calc(100vw * 650 / 1100));
+    z-index: 1;
+  }
+
+  #diagram {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .page-head {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px 18px 0 10px;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .page-head h1 {
+    margin: 0;
+    font-family: 'Manrope', sans-serif;
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: var(--page-title);
+    line-height: 1.1;
+  }
+
+  .page-head p {
+    margin: 8px 0 0;
+    max-width: 1040px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-body);
+    line-height: 1.35;
+    opacity: 0.95;
+    text-wrap: balance;
+  }
 
   .mode-hint {
     position: fixed;
@@ -168,7 +212,7 @@
 
   .overlay-bg {
     display: none; position: fixed; inset: 0;
-    background: var(--overlay-bg); backdrop-filter: blur(5px);
+    background: var(--overlay-bg); backdrop-filter: blur(2px);
     z-index: 100; align-items: center; justify-content: center;
   }
   .overlay-bg.active { display: flex; }
@@ -217,7 +261,13 @@
 
 <button class="mode-hint" id="mode-hint" type="button" aria-label="Toggle color mode">Switch to Light Mode</button>
 
-<svg id="diagram"></svg>
+<div class="canvas-wrap">
+  <div class="page-head">
+    <h1>Large Language Model Developer Tool Extension Taxonomy</h1>
+    <p>There has been a proliferation of LLM Developer Tool Extensions from competing vendors. As a result, the market has profoundly inconsistent nomenclature and standards that make the domain space seem unecessarily complex. This page is an attempt to simplify and disambiguate the offerings in this domain.</p>
+  </div>
+  <svg id="diagram"></svg>
+</div>
 
 <div class="overlay-bg" id="overlay">
   <div class="overlay-card">
@@ -231,23 +281,23 @@
 <script>
 // ── Info map ──
 const info = {
-  'context-injection':       { title: 'Context Injection',              body: 'Info coming soon.' },
-  'shared-context':          { title: 'Shared Context',                 body: 'Info coming soon.' },
-  'unconditional-injection': { title: 'Unconditional Injection',        body: 'Info coming soon.' },
-  'agents-md':               { title: 'AGENTS.md',                      body: 'Info coming soon.' },
-  'claude-md':               { title: 'CLAUDE.md',                      body: 'Info coming soon.' },
-  'copilot-instructions':    { title: 'copilot-instructions.md',        body: 'Info coming soon.' },
+  'context-injection':       { title: 'Context Injection',              body: 'All of these extensions leverage context injection to improve outputs.' },
+  'shared-context':          { title: 'Shared Context',                 body: 'These extensions share context with the main process. That being said, skills invoked in the main context can spawn subagents with isolated contexts.' },
+  'unconditional-injection': { title: 'Unconditional Injection',        body: 'These prompts are always injected, regardless of the input. A 1000 token AGENTS.md gets injected even if the input is merely "hello."' },
+  'agents-md':               { title: 'AGENTS.md',                      body: 'A vendor-agnostic format for unconditional prompt injection.' },
+  'claude-md':               { title: 'CLAUDE.md',                      body: 'A Claude Code-specific format for unconditional prompt injection.' },
+  'copilot-instructions':    { title: 'copilot-instructions.md',        body: 'A GitHub Copilot-specific format for unconditional prompt injection.' },
   'uncond-etc':              { title: 'Other Unconditional Files',      body: 'Info coming soon.' },
-  'conditional-injection':   { title: 'Conditional Injection (Skills)', body: 'Info coming soon.' },
-  'explicit-injection':      { title: 'Explicit Injection',             body: 'Info coming soon.' },
+  'conditional-injection':   { title: 'Conditional Injection (Skills)', body: 'The context is augmented only when specific conditions are met. This reduces context bloat thanks to progressive disclosure.' },
+  'explicit-injection':      { title: 'Explicit Injection',             body: 'These prompts are injected only when explicitly invoked using e.g. slash commands.' },
   'claude-commands':         { title: 'Claude Commands',                body: 'Info coming soon.' },
   'windsurf-workflows':      { title: 'Windsurf Workflows',             body: 'Info coming soon.' },
   'explicit-etc':            { title: 'Other Explicit Injections',      body: 'Info coming soon.' },
   'claude-skills':           { title: 'Claude Skills',                  body: 'Info coming soon.' },
   'windsurf-skills':         { title: 'Windsurf Skills',                body: 'Info coming soon.' },
   'overlap-etc':             { title: 'Other Skills',                   body: 'Info coming soon.' },
-  'implicit-injection':      { title: 'Implicit Injection',             body: 'Info coming soon.' },
-  'isolated-context':        { title: 'Isolated Context',               body: 'Info coming soon.' },
+  'implicit-injection':      { title: 'Implicit Injection',             body: 'These prompts contain frontmatter with a description field. If a given input aligns with the provide description, the prompt is injected.' },
+  'isolated-context':        { title: 'Isolated Context',               body: 'These extensions have a context that is isolated from the main context.' },
   'subagents':               { title: 'Subagents',                      body: 'Info coming soon.' },
 };
 
@@ -359,38 +409,6 @@ function titleCase(s) {
 const svg = d3.select('#diagram')
   .attr('viewBox', `0 0 ${W} ${H}`)
   .attr('preserveAspectRatio', 'xMidYMid meet');
-
-// Page title
-svg.append('text')
-  .attr('x', 10)
-  .attr('y', 34)
-  .attr('text-anchor', 'start')
-  .attr('font-family', 'Manrope, sans-serif')
-  .attr('font-size', 24)
-  .attr('font-weight', 700)
-  .attr('letter-spacing', '0.03em')
-  .attr('fill', 'var(--page-title)')
-  .text('Large Language Model Developer Tool Extension Taxonomy');
-
-// Subtitle / context blurb
-const subtitle = svg.append('text')
-  .attr('x', 10)
-  .attr('y', 56)
-  .attr('text-anchor', 'start')
-  .attr('font-family', 'IBM Plex Sans, sans-serif')
-  .attr('font-size', 12)
-  .attr('font-weight', 400)
-  .attr('fill', 'var(--text-body)')
-  .attr('opacity', 0.95);
-
-subtitle.append('tspan')
-  .attr('x', 10)
-  .text('The market has been flooded with LLM Developer Tool Extensions from LLM vendors. These extensions have profoundly inconsistent nomenclature and standards');
-
-subtitle.append('tspan')
-  .attr('x', 10)
-  .attr('dy', 14)
-  .text('that make the domain space seem unecessarily complex. This page is an attempt to simplify and disambiguate this domain.');
 
 // Draw boxes (back to front order)
 const boxG = svg.selectAll('.box')
