@@ -90,10 +90,10 @@ nodes:
     label: Windsurf Skills
     body: https://docs.windsurf.com/windsurf/cascade/skills
 
-  skills-sh:
-    title: Skills.sh
-    label: Skills.sh
-    body: A vendor agnostic format for defining and distributing agent skills, supported by Amp, Cline, Codex, Cursor, Gemini CLI, GitHub Copilot, Kimi Code CLI, and OpenCode.<br><br>https://skills.sh/
+  agent-skills:
+    title: Agent Skills
+    label: Agent Skills
+    body: A vendor agnostic format for defining and distributing agent skills, supported by Amp, Cline, Codex, Cursor, Gemini CLI, GitHub Copilot, Kimi Code CLI, and OpenCode.<br><br>https://agentskills.io/home
 
   antigravity-skills:
     title: Antigravity Skills
@@ -139,7 +139,7 @@ lists:
     - windsurf-workflows
     - explicit-etc
   overlap:
-    - skills-sh
+    - agent-skills
     - antigravity-skills
     - cursor-skills
     - codex-skills
